@@ -1,116 +1,82 @@
 import { useState, useEffect } from 'react';
 import { JobApplication } from '../types';
 
-interface IPCResponse {
-  success: boolean;
-  data?: Array<Partial<JobApplication> & { id: string }>;
-  error?: string;
+declare global {
+  interface Window {
+    electronAPI?: {
+      getApplications: () => Promise<JobApplication[]>;
+      addApplication: (app: JobApplication) => Promise<{ success: boolean; error?: string }>;
+      updateApplication: (id: string, updates: Partial<JobApplication>) => Promise<void>;
+      deleteApplication: (id: string) => Promise<void>;
+    };
+  }
 }
 
-export const useJobApplications = () => {
+export function useJobApplications() {
   const [applications, setApplications] = useState<JobApplication[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
+  const loadApplications = async () => {
+    try {
+      if (!window.electronAPI?.getApplications) {
+        console.warn('[hook] Electron API not available');
+        return;
+      }
+
+      const data = await window.electronAPI.getApplications();
+      console.log('[hook] Loaded applications:', data);
+      setApplications(data);
+    } catch (error) {
+      console.error('[hook] Failed to load applications:', error);
+    }
+  };
 
   useEffect(() => {
-    async function loadApplications() {
-      try {
-        const result = await (window as any).api.getApplications();
-        if (result.success && Array.isArray(result.data)) {
-          const validApplications = result.data.map((app: Partial<JobApplication> & { id: string }) => {
-            const baseApp: JobApplication = {
-              id: app.id || Date.now().toString(),
-              role: app.role || '',
-              jobTitle: app.jobTitle || '',
-              company: app.company || '',
-              resumeUsed: app.resumeUsed || '',
-              appliedDate: app.appliedDate || new Date().toISOString().split('T')[0],
-              status: app.status || 'applied',
-              coverLetter: app.coverLetter || '',
-              jobUrl: app.jobUrl || '',
-              notes: app.notes || '',
-              salary: app.salary || '',
-              location: app.location || '',
-              contactPerson: app.contactPerson || '',
-              followUpDate: app.followUpDate || '',
-            };
-            return baseApp;
-          });
-          setApplications(validApplications);
-        } else {
-          setError(result.error || 'Failed to load applications');
-          console.error('Failed to load applications:', result.error);
-        }
-      } catch (error) {
-        setError('Error loading applications');
-        console.error('Error loading applications:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
     loadApplications();
   }, []);
 
-  const saveApplication = async (application: Omit<JobApplication, 'id'>) => {
+  const addApplication = async (app: Omit<JobApplication, 'id'>) => {
+    const newApp: JobApplication = {
+      ...app,
+      id: Date.now().toString(),
+    };
+
     try {
-      const newApp: JobApplication = {
-        ...application,
-        id: Date.now().toString(),
-      };
-      const result = await (window as any).api.saveApplication(newApp);
-      if (result.success) {
-        setApplications(prev => [...prev.filter(app => app.id !== newApp.id), newApp]);
-        setError(null);
+      console.log('[hook] Adding application:', newApp);
+      const result = await window.electronAPI?.addApplication(newApp);
+      console.log('[hook] Result from preload:', result);
+
+      if (result?.success) {
+        await loadApplications();
       } else {
-        setError(result.error || 'Failed to save application');
-        console.error('Failed to save application:', result.error);
+        console.error('[hook] Failed to save application:', result?.error);
       }
     } catch (error) {
-      setError('Error saving application');
-      console.error('Error saving application:', error);
+      console.error('[hook] Error during addApplication:', error);
     }
   };
 
   const updateApplication = async (id: string, updates: Partial<JobApplication>) => {
     try {
-      const result = await (window as any).api.updateApplication(id, updates);
-      if (result.success) {
-        setApplications(prev =>
-          prev.map(app => (app.id === id ? { ...app, ...updates } : app))
-        );
-        setError(null);
-      } else {
-        setError(result.error || 'Failed to update application');
-        console.error('Failed to update application:', result.error);
-      }
+      await window.electronAPI?.updateApplication(id, updates);
+      await loadApplications();
     } catch (error) {
-      setError('Error updating application');
-      console.error('Error updating application:', error);
+      console.error('[hook] Error updating application:', error);
     }
   };
 
   const deleteApplication = async (id: string) => {
     try {
-      const result = await (window as any).api.deleteApplication(id);
-      if (result.success) {
-        setApplications(prev => prev.filter(app => app.id !== id));
-        setError(null);
-      } else {
-        setError(result.error || 'Failed to delete application');
-        console.error('Failed to delete application:', result.error);
-      }
+      await window.electronAPI?.deleteApplication(id);
+      await loadApplications();
     } catch (error) {
-      setError('Error deleting application');
-      console.error('Error deleting application:', error);
+      console.error('[hook] Error deleting application:', error);
     }
   };
 
   return {
     applications,
-    loading,
-    error,
-    addApplication: saveApplication,
+    addApplication,
     updateApplication,
     deleteApplication,
   };
-};
+}

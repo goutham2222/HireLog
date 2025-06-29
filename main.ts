@@ -1,119 +1,152 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
-  import sqlite3 from 'sqlite3';
-  import { open } from 'sqlite';
-  import path from 'path';
+import path from 'node:path';
+import { fileURLToPath } from 'url';
+import { Database } from 'sqlite3';
 
-  let mainWindow: BrowserWindow | null = null;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-  async function createWindow() {
-    mainWindow = new BrowserWindow({
-      width: 800,
-      height: 600,
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
-        nodeIntegration: true,
-        contextIsolation: false,
-      },
-    });
+const dbPath = path.join(app.getPath('userData'), 'job_applications.db');
+const db = new Database(dbPath);
 
-    if (process.env.NODE_ENV === 'development') {
-      mainWindow.loadURL('http://localhost:5173');
-    } else {
-      mainWindow.loadFile(path.join(__dirname, 'index.html'));
-    }
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS applications (
+      id TEXT PRIMARY KEY,
+      role TEXT,
+      jobTitle TEXT,
+      company TEXT,
+      resumeUsed TEXT,
+      appliedDate TEXT,
+      status TEXT,
+      coverLetter TEXT,
+      jobUrl TEXT,
+      notes TEXT,
+      salary TEXT,
+      location TEXT,
+      contactPerson TEXT,
+      followUpDate TEXT
+    )
+  `);
+  console.log('[main] Database initialized at:', dbPath);
+});
 
-    mainWindow.on('closed', () => {
-      mainWindow = null;
-    });
-  }
+let mainWindow: BrowserWindow;
 
-  async function initializeDatabase() {
-    const db = await open({
-      filename: path.join(__dirname, 'job_applications.db'),
-      driver: sqlite3.Database,
-    });
-
-    await db.exec(`
-      CREATE TABLE IF NOT EXISTS applications (
-        id TEXT PRIMARY KEY,
-        role TEXT,
-        jobTitle TEXT,
-        company TEXT,
-        resumeUsed TEXT,
-        appliedDate TEXT,
-        status TEXT,
-        coverLetter TEXT,
-        jobUrl TEXT,
-        notes TEXT,
-        salary TEXT,
-        location TEXT,
-        contactPerson TEXT,
-        followUpDate TEXT
-      )
-    `);
-
-    return db;
-  }
-
-  app.on('ready', async () => {
-    await initializeDatabase();
-    createWindow();
-
-    ipcMain.handle('getApplications', async () => {
-      const db = await initializeDatabase();
-      const applications = await db.all('SELECT * FROM applications');
-      return { success: true, data: applications };
-    });
-
-    ipcMain.handle('saveApplication', async (_, application) => {
-      const db = await initializeDatabase();
-      await db.run(
-        'INSERT INTO applications (id, role, jobTitle, company, resumeUsed, appliedDate, status, coverLetter, jobUrl, notes, salary, location, contactPerson, followUpDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [
-          application.id,
-          application.role,
-          application.jobTitle,
-          application.company,
-          application.resumeUsed,
-          application.appliedDate,
-          application.status,
-          application.coverLetter,
-          application.jobUrl,
-          application.notes,
-          application.salary,
-          application.location,
-          application.contactPerson,
-          application.followUpDate,
-        ]
-      );
-      return { success: true };
-    });
-
-    ipcMain.handle('updateApplication', async (_, id, updates) => {
-      const db = await initializeDatabase();
-      const setClause = Object.keys(updates)
-        .map(key => `${key} = ?`)
-        .join(', ');
-      const values = [...Object.values(updates), id];
-      await db.run(`UPDATE applications SET ${setClause} WHERE id = ?`, values);
-      return { success: true };
-    });
-
-    ipcMain.handle('deleteApplication', async (_, id) => {
-      const db = await initializeDatabase();
-      await db.run('DELETE FROM applications WHERE id = ?', [id]);
-      return { success: true };
-    });
+function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'), // make sure this matches the built file
+    },
   });
 
-  app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-      app.quit();
-    }
-  });
+  if (process.env.NODE_ENV === 'development') {
+    mainWindow.loadURL('http://localhost:5173');
+  } else {
+    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+  }
 
+  mainWindow.webContents.openDevTools();
+}
+
+app.whenReady().then(() => {
+  createWindow();
   app.on('activate', () => {
-    if (mainWindow === null) {
-      createWindow();
-    }
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+});
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
+});
+
+ipcMain.handle('get-applications', () => {
+  return new Promise((resolve, reject) => {
+    db.all('SELECT * FROM applications ORDER BY appliedDate DESC', [], (err, rows) => {
+      if (err) {
+        console.error('[main] get-applications failed:', err);
+        reject(err);
+      } else {
+        console.log('[main] Returning', rows.length, 'applications');
+        resolve(rows);
+      }
+    });
+  });
+});
+
+ipcMain.handle('saveApplication', async (_, application) => {
+  console.log('[main] Received saveApplication:', application);
+  try {
+    db.run(
+      `INSERT INTO applications (
+        id, role, jobTitle, company, resumeUsed, appliedDate, status,
+        coverLetter, jobUrl, notes, salary, location, contactPerson, followUpDate
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        application.id,
+        application.role,
+        application.jobTitle,
+        application.company,
+        application.resumeUsed,
+        application.appliedDate,
+        application.status,
+        application.coverLetter,
+        application.jobUrl,
+        application.notes,
+        application.salary,
+        application.location,
+        application.contactPerson,
+        application.followUpDate,
+      ],
+      (err) => {
+        if (err) {
+          console.error('[main] Failed to insert application:', err.message);
+        } else {
+          console.log('[main] Application inserted successfully.');
+        }
+      }
+    );
+    return { success: true };
+  } catch (err) {
+    console.error('[main] Exception while inserting application:', err);
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('update-application', (event, id, updatedData) => {
+  const keys = Object.keys(updatedData);
+  const values = Object.values(updatedData);
+  const setClause = keys.map(k => `${k} = ?`).join(', ');
+
+  return new Promise((resolve, reject) => {
+    db.run(
+      `UPDATE applications SET ${setClause} WHERE id = ?`,
+      [...values, id],
+      function (err) {
+        if (err) {
+          console.error('[main] Failed to update:', err);
+          reject(err);
+        } else {
+          console.log('[main] Updated application:', id);
+          resolve(true);
+        }
+      }
+    );
+  });
+});
+
+ipcMain.handle('delete-application', (event, id) => {
+  return new Promise((resolve, reject) => {
+    db.run('DELETE FROM applications WHERE id = ?', [id], (err) => {
+      if (err) {
+        console.error('[main] Failed to delete:', err);
+        reject(err);
+      } else {
+        console.log('[main] Deleted application:', id);
+        resolve(true);
+      }
+    });
+  });
+});
