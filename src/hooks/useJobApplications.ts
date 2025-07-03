@@ -6,7 +6,6 @@ export interface JobApplication {
   jobTitle: string;
   company: string;
   appliedDate: string;
-  salaryRange: string;
   jobUrl: string;
   followUpDate: string;
   resumeUsed: string;
@@ -17,19 +16,7 @@ export interface JobApplication {
   notes: string;
 }
 
-declare global {
-  interface Window {
-    api: {
-      getApplications: () => Promise<JobApplication[]>;
-      saveApplication: (app: Omit<JobApplication, 'id'>) => void;
-      deleteApplication: (id: string) => void;
-      updateApplication: (app: JobApplication) => void;
-      exportApplications: (format: 'json' | 'csv') => Promise<{ success: boolean; path?: string }>;
-    };
-  }
-}
-
-export function useJobApplications() {
+export const useJobApplications = () => {
   const [applications, setApplications] = useState<JobApplication[]>([]);
 
   const loadApplications = async () => {
@@ -37,25 +24,19 @@ export function useJobApplications() {
     setApplications(apps);
   };
 
-  const addApplication = (appData: Omit<JobApplication, 'id'>) => {
-    console.log('[AddApplicationPage] handleSave received:', appData);
-    window.api.saveApplication(appData);
-    loadApplications();
+  const addApplication = async (app: Omit<JobApplication, 'id'>) => {
+    window.api.saveApplication(app);
+    await loadApplications();
   };
 
-  const deleteApplication = (id: string) => {
+  const deleteApplication = async (id: string) => {
     window.api.deleteApplication(id);
-    loadApplications();
+    await loadApplications();
   };
 
-  const updateApplication = (appData: JobApplication) => {
-    window.api.updateApplication(appData);
-    loadApplications();
-  };
-
-  const exportApplications = async (format: 'json' | 'csv') => {
-    const result = await window.api.exportApplications(format);
-    return result;
+  const updateApplication = async (app: JobApplication) => {
+    window.api.updateApplication(app);
+    await loadApplications();
   };
 
   useEffect(() => {
@@ -67,6 +48,5 @@ export function useJobApplications() {
     addApplication,
     deleteApplication,
     updateApplication,
-    exportApplications,
   };
-}
+};

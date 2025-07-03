@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useJobApplications } from '../hooks/useJobApplications';
 import { ApplicationForm } from '../components/ApplicationForm';
+import { useJobApplications } from '../hooks/useJobApplications';
 import { JobApplication } from '../types';
 
 export const AddApplicationPage: React.FC = () => {
@@ -10,8 +10,19 @@ export const AddApplicationPage: React.FC = () => {
 
   const handleSave = async (data: Omit<JobApplication, 'id'>) => {
     console.log('[AddApplicationPage] handleSave received:', data);
-    await addApplication(data); // ✅ wait until saved
-    navigate('/');              // ✅ navigate only after save
+    // Ensure all string fields are always a string (never undefined)
+    const safeData = {
+      ...data,
+      id: Date.now().toString(),
+      jobUrl: data.jobUrl ?? '',
+      followUpDate: data.followUpDate ?? '',
+      location: data.location ?? '',
+      contactPerson: data.contactPerson ?? '',
+      coverLetter: data.coverLetter ?? '',
+      notes: data.notes ?? '',
+    };
+    await addApplication(safeData);
+    navigate('/');
   };
 
   const handleCancel = () => {
@@ -19,11 +30,8 @@ export const AddApplicationPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <ApplicationForm
-        onSave={handleSave}
-        onCancel={handleCancel}
-      />
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      <ApplicationForm onSave={handleSave} onCancel={handleCancel} />
     </div>
   );
 };
