@@ -1,9 +1,11 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { ApplicationsPage } from './pages/ApplicationsPage';
 import { AddApplicationPage } from './pages/AddApplicationPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
+
+// ✅ Debug log to verify preload API
+console.log('[Debug] window.api:', window.api);
 
 function App() {
   return (

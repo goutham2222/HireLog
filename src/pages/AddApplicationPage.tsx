@@ -8,10 +8,10 @@ export const AddApplicationPage: React.FC = () => {
   const navigate = useNavigate();
   const { addApplication } = useJobApplications();
 
-  const handleSave = (data: Omit<JobApplication, 'id'>) => {
+  const handleSave = async (data: Omit<JobApplication, 'id'>) => {
     console.log('[AddApplicationPage] handleSave received:', data);
-    addApplication(data);
-    navigate('/');
+    await addApplication(data); // ✅ wait until saved
+    navigate('/');              // ✅ navigate only after save
   };
 
   const handleCancel = () => {

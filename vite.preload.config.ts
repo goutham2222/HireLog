@@ -1,16 +1,15 @@
 import { defineConfig } from 'vite';
+import path from 'path';
 
 export default defineConfig({
   build: {
     outDir: 'dist',
+    emptyOutDir: false,
+    target: 'node16',
     lib: {
-      entry: 'preload.ts',
-      formats: ['cjs'],              // 👈 must be CommonJS for Electron preload
-      fileName: 'preload',           // 👈 results in preload.js
+      entry: path.resolve(__dirname, 'preload.ts'),
+      formats: ['cjs'],
+      fileName: () => 'preload.cjs',
     },
-    rollupOptions: {
-      external: ['electron'],        // 👈 critical: don't bundle 'electron'
-    },
-    emptyOutDir: false               // optional: don't delete main.ts output
   },
 });

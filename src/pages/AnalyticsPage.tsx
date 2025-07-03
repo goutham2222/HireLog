@@ -5,7 +5,6 @@ import { calculateStats } from '../utils/statsUtils';
 import { Calendar, TrendingUp, Clock, CheckCircle, Target } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
 export const AnalyticsPage: React.FC = () => {
   const { applications } = useJobApplications();
@@ -73,8 +72,8 @@ export const AnalyticsPage: React.FC = () => {
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={applicationTrend}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" fontSize={12} />
-              <YAxis fontSize={12} />
+              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+              <YAxis tick={{ fontSize: 12 }} />
               <Tooltip />
               <Line 
                 type="monotone" 
@@ -97,7 +96,7 @@ export const AnalyticsPage: React.FC = () => {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
