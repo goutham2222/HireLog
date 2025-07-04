@@ -2,9 +2,13 @@ import React from 'react';
 import { useJobApplications } from '../hooks/useJobApplications';
 import { StatsCard } from '../components/StatsCard';
 import { calculateStats } from '../utils/statsUtils';
-import { Calendar, TrendingUp, Clock, CheckCircle, Target } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-
+import {
+  Calendar, TrendingUp, Clock, CheckCircle, Target,
+} from 'lucide-react';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell,
+} from 'recharts';
 
 export const AnalyticsPage: React.FC = () => {
   const { applications } = useJobApplications();
@@ -24,7 +28,7 @@ export const AnalyticsPage: React.FC = () => {
   }));
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
         <p className="text-gray-600 mt-1">Insights into your job application journey</p>
@@ -32,36 +36,11 @@ export const AnalyticsPage: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-        <StatsCard
-          title="Total Applications"
-          value={stats.totalApplications}
-          icon={Target}
-          color="bg-blue-600"
-        />
-        <StatsCard
-          title="Today"
-          value={stats.dailyCount}
-          icon={Calendar}
-          color="bg-green-600"
-        />
-        <StatsCard
-          title="This Week"
-          value={stats.weeklyCount}
-          icon={TrendingUp}
-          color="bg-purple-600"
-        />
-        <StatsCard
-          title="This Month"
-          value={stats.monthlyCount}
-          icon={Clock}
-          color="bg-orange-600"
-        />
-        <StatsCard
-          title="Accepted"
-          value={stats.statusCounts.accepted || 0}
-          icon={CheckCircle}
-          color="bg-emerald-600"
-        />
+        <StatsCard title="Total Applications" value={stats.totalApplications} icon={Target} color="bg-blue-600" />
+        <StatsCard title="Today" value={stats.dailyCount} icon={Calendar} color="bg-green-600" />
+        <StatsCard title="This Week" value={stats.weeklyCount} icon={TrendingUp} color="bg-purple-600" />
+        <StatsCard title="This Month" value={stats.monthlyCount} icon={Clock} color="bg-orange-600" />
+        <StatsCard title="Accepted" value={stats.statusCounts.accepted || 0} icon={CheckCircle} color="bg-emerald-600" />
       </div>
 
       {/* Charts */}
@@ -75,10 +54,10 @@ export const AnalyticsPage: React.FC = () => {
               <XAxis dataKey="date" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip />
-              <Line 
-                type="monotone" 
-                dataKey="count" 
-                stroke="#3B82F6" 
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke="#3B82F6"
                 strokeWidth={2}
                 dot={{ fill: '#3B82F6', strokeWidth: 2 }}
               />
@@ -96,10 +75,9 @@ export const AnalyticsPage: React.FC = () => {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
+                outerRadius={100}
                 dataKey="value"
+                label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`}
               >
                 {statusData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
@@ -144,7 +122,7 @@ export const AnalyticsPage: React.FC = () => {
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-purple-600">
-                {stats.totalApplications > 0 ? Math.round(stats.totalApplications / 30) : 0}
+                {Math.round(stats.totalApplications / 30)}
               </div>
               <div className="text-sm text-gray-600">Avg. Applications/Day</div>
             </div>

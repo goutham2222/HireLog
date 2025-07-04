@@ -1,52 +1,47 @@
-import { useEffect, useState } from 'react';
-
-export interface JobApplication {
-  id: string;
-  role: string;
-  jobTitle: string;
-  company: string;
-  appliedDate: string;
-  jobUrl: string;
-  followUpDate: string;
-  resumeUsed: string;
-  status: string;
-  location: string;
-  contactPerson: string;
-  coverLetter: string;
-  notes: string;
-}
+import { useState } from 'react';
+import { JobApplication } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
 export const useJobApplications = () => {
   const [applications, setApplications] = useState<JobApplication[]>([]);
 
-  const loadApplications = async () => {
-    const apps = await window.api.getApplications();
-    setApplications(apps);
+  const addApplication = async (application: Omit<JobApplication, 'id'>): Promise<void> => {
+    const newApp: JobApplication = { id: uuidv4(), ...application };
+    setApplications(prev => [...prev, newApp]);
   };
 
-  const addApplication = async (app: Omit<JobApplication, 'id'>) => {
-    window.api.saveApplication(app);
-    await loadApplications();
+  const updateApplication = async (application: JobApplication): Promise<void> => {
+    setApplications(prev => prev.map(app => (app.id === application.id ? application : app)));
   };
 
-  const deleteApplication = async (id: string) => {
-    window.api.deleteApplication(id);
-    await loadApplications();
+  const deleteApplication = async (id: string): Promise<void> => {
+    setApplications(prev => prev.filter(app => app.id !== id));
   };
 
-  const updateApplication = async (app: JobApplication) => {
-    window.api.updateApplication(app);
-    await loadApplications();
-  };
+  const exportApplications = async (format: 'csv' | 'json'): Promise<void> => {
+    const data = format === 'json'
+      ? JSON.stringify(applications, null, 2)
+      : [
+          ['ID', 'Role', 'Company', 'Status', 'AppliedDate'],
+          ...applications.map(a => [a.id, a.role, a.company, a.status, a.appliedDate]),
+        ]
+            .map(row => row.join(','))
+            .join('\n');
 
-  useEffect(() => {
-    loadApplications();
-  }, []);
+    const blob = new Blob([data], { type: format === 'json' ? 'application/json' : 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `applications.${format}`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   return {
     applications,
     addApplication,
-    deleteApplication,
     updateApplication,
+    deleteApplication,
+    exportApplications,
   };
 };

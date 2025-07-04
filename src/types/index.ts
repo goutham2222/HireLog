@@ -1,3 +1,5 @@
+export type ApplicationStatus = 'applied' | 'interview' | 'rejected' | 'accepted' | 'pending';
+
 export interface JobApplication {
   id: string;
   role: string;
@@ -5,14 +7,14 @@ export interface JobApplication {
   company: string;
   resumeUsed: string;
   appliedDate: string;
-  status: 'applied' | 'interview' | 'rejected' | 'accepted' | 'pending';
+  status: ApplicationStatus;
   coverLetter: string;
-  jobUrl?: string;
-  notes?: string;
-  salary?: string;
-  location?: string;
-  contactPerson?: string;
-  followUpDate?: string;
+  jobUrl: string;
+  notes: string;
+  salaryRange: string;
+  location: string;
+  contactPerson: string;
+  followUpDate: string;
 }
 
 export interface DashboardStats {
@@ -20,7 +22,7 @@ export interface DashboardStats {
   dailyCount: number;
   weeklyCount: number;
   monthlyCount: number;
-  statusCounts: Record<string, number>;
-  applicationsByDate: Array<{ date: string; count: number }>;
-  applicationsByStatus: Array<{ status: string; count: number }>;
+  statusCounts: Record<ApplicationStatus, number>;
+  applicationsByStatus: { status: ApplicationStatus; count: number }[];
+  applicationsByDate: { date: string; count: number }[];
 }
