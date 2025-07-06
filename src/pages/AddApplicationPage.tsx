@@ -9,8 +9,6 @@ export const AddApplicationPage: React.FC = () => {
   const { addApplication } = useJobApplications();
 
   const handleSave = async (data: Omit<JobApplication, 'id'>) => {
-    console.log('[AddApplicationPage] handleSave received:', data);
-    // Ensure all string fields are always a string (never undefined)
     const safeData = {
       ...data,
       id: Date.now().toString(),
@@ -30,8 +28,10 @@ export const AddApplicationPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
-      <ApplicationForm onSave={handleSave} onCancel={handleCancel} />
+    <div className="min-h-screen h-full overflow-y-auto bg-gray-50 py-10 px-4">
+      <div className="max-w-4xl mx-auto">
+        <ApplicationForm onSave={handleSave} onCancel={handleCancel} />
+      </div>
     </div>
   );
 };
