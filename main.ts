@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, screen } from 'electron';
 import * as path from 'path';
 import fs from 'fs';
 import Database from 'better-sqlite3';
@@ -31,9 +31,11 @@ const initDB = () => {
 };
 
 const createWindow = () => {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width,
+    height,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
@@ -49,16 +51,11 @@ const createWindow = () => {
   });
 };
 
-
-
-// IPC handlers
 ipcMain.handle('get-applications', () => {
   return db!.prepare('SELECT * FROM applications ORDER BY appliedDate DESC').all();
 });
 
-ipcMain.on('save-application', (_event, data) => {
-
-  const id = Date.now().toString();
+ipcMain.handle('save-application', (_event, data) => {
   const stmt = db!.prepare(`
     INSERT INTO applications (
       id, role, jobTitle, company, appliedDate, salaryRange, jobUrl,
@@ -67,7 +64,7 @@ ipcMain.on('save-application', (_event, data) => {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-    stmt.run(
+  stmt.run(
     data.id,
     data.role,
     data.jobTitle,
@@ -84,13 +81,10 @@ ipcMain.on('save-application', (_event, data) => {
     data.notes
   );
 
+  return data;
 });
 
-ipcMain.on('delete-application', (_e, id: string) => {
-  db!.prepare('DELETE FROM applications WHERE id = ?').run(id);
-});
-
-ipcMain.on('update-application', (_e, data) => {
+ipcMain.handle('update-application', (_e, data) => {
   db!.prepare(`
     UPDATE applications SET
       role = ?, jobTitle = ?, company = ?, appliedDate = ?, salaryRange = ?, jobUrl = ?,
@@ -102,16 +96,23 @@ ipcMain.on('update-application', (_e, data) => {
     data.followUpDate, data.resumeUsed, data.status, data.location,
     data.contactPerson, data.coverLetter, data.notes, data.id
   );
+
+  return data;
 });
 
-// App lifecycle
+ipcMain.on('delete-application', (_e, id: string) => {
+  db!.prepare('DELETE FROM applications WHERE id = ?').run(id);
+});
+
 app.whenReady().then(() => {
   initDB();
   createWindow();
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
