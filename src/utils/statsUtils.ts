@@ -10,10 +10,9 @@ export interface DashboardStats {
   weeklyCount: number;
   monthlyCount: number;
   applicationsByStatus: { status: ApplicationStatus; count: number }[];
-  averageApplicationsPerDay: number; // ✅ added
+  averageApplicationsPerDay: number;
 }
 
-// Normalize date to local midnight safely
 const normalizeToLocalMidnight = (date: Date): Date => {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 };
@@ -31,19 +30,11 @@ export function calculateStats(applications: JobApplication[]): DashboardStats {
   const now = normalizeToLocalMidnight(new Date());
 
   for (const app of applications) {
-    // Parse appliedDate and normalize it
-    const parsed = new Date(app.appliedDate + 'T00:00:00'); // Force local timezone
+    const parsed = new Date(app.appliedDate + 'T00:00:00');
     const normalized = normalizeToLocalMidnight(parsed);
     const timeKey = normalized.getTime();
 
-    console.log(
-      `[StatsUtils] App ID: ${app.id} | appliedDate: ${app.appliedDate} | Parsed: ${parsed.toISOString()} | Normalized: ${normalized.toDateString()}`
-    );
-
-    // Count status
     statusCounts[app.status] = (statusCounts[app.status] || 0) + 1;
-
-    // Group by date
     applicationsByDateMap.set(timeKey, (applicationsByDateMap.get(timeKey) || 0) + 1);
   }
 
@@ -55,7 +46,7 @@ export function calculateStats(applications: JobApplication[]): DashboardStats {
   const isSameDay = (d: Date) => d.getTime() === now.getTime();
 
   const isSameWeek = (d: Date) => {
-    const dayOfWeek = (now.getDay() + 6) % 7; // Monday = 0
+    const dayOfWeek = (now.getDay() + 6) % 7;
     const monday = new Date(now);
     monday.setDate(now.getDate() - dayOfWeek);
     const sunday = new Date(monday);
@@ -83,10 +74,9 @@ export function calculateStats(applications: JobApplication[]): DashboardStats {
     count,
   }));
 
-  // ✅ NEW: Calculate average applications per unique applied day
-  const uniqueDays = applicationsByDate.length;
-  const averageApplicationsPerDay = uniqueDays > 0
-    ? applications.length / uniqueDays
+  const uniqueDates = new Set(applicationsByDate.map(d => d.date.getTime()));
+  const averageApplicationsPerDay = uniqueDates.size > 0
+    ? applications.length / uniqueDates.size
     : 0;
 
   return {
@@ -97,6 +87,6 @@ export function calculateStats(applications: JobApplication[]): DashboardStats {
     weeklyCount,
     monthlyCount,
     applicationsByStatus,
-    averageApplicationsPerDay, // ✅ added
+    averageApplicationsPerDay,
   };
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useJobApplications } from '../hooks/useJobApplications';
 import { StatsCard } from '../components/StatsCard';
 import { calculateStats } from '../utils/statsUtils';
@@ -12,7 +12,17 @@ import {
 
 export const AnalyticsPage: React.FC = () => {
   const { applications } = useJobApplications();
-  const stats = calculateStats(applications);
+
+  const [roleFilter, setRoleFilter] = useState('All');
+  const [companyFilter, setCompanyFilter] = useState('');
+
+  const filteredApplications = applications.filter(app => {
+    const roleMatch = roleFilter === 'All' || app.role === roleFilter;
+    const companyMatch = app.company.toLowerCase().includes(companyFilter.toLowerCase());
+    return roleMatch && companyMatch;
+  });
+
+  const stats = calculateStats(filteredApplications);
 
   const statusData = [
     { name: 'Applied', value: stats.statusCounts.applied || 0, color: '#3B82F6' },
@@ -30,6 +40,40 @@ export const AnalyticsPage: React.FC = () => {
   return (
     <div className="min-h-screen h-full overflow-y-auto w-full bg-gray-50 px-4 py-10">
       <div className="max-w-7xl mx-auto">
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-4 mb-6">
+          <select
+            value={roleFilter}
+            onChange={e => setRoleFilter(e.target.value)}
+            className="px-4 py-2 border rounded-md shadow-sm"
+          >
+            <option value="All">All Roles</option>
+            <option value="Data Engineer">Data Engineer</option>
+            <option value="Data Analyst">Data Analyst</option>
+            <option value="Data Scientist">Data Scientist</option>
+            <option value="Software Engineer">Software Engineer</option>
+            <option value="Frontend Developer">Frontend Developer</option>
+            <option value="Backend Developer">Backend Developer</option>
+            <option value="Full Stack Developer">Full Stack Developer</option>
+            <option value="DevOps Engineer">DevOps Engineer</option>
+            <option value="Product Manager">Product Manager</option>
+            <option value="UX/UI Designer">UX/UI Designer</option>
+            <option value="Business Analyst">Business Analyst</option>
+            <option value="Machine Learning Engineer">Machine Learning Engineer</option>
+            <option value="Cloud Engineer">Cloud Engineer</option>
+            <option value="Mobile Developer">Mobile Developer</option>
+            <option value="Other">Other</option>
+          </select>
+
+          <input
+            type="text"
+            value={companyFilter}
+            onChange={e => setCompanyFilter(e.target.value)}
+            placeholder="Filter by Company..."
+            className="px-4 py-2 border rounded-md shadow-sm w-64"
+          />
+        </div>
+
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <StatsCard title="Total Applications" value={stats.totalApplications} icon={Target} color="bg-blue-600" />
@@ -81,7 +125,6 @@ export const AnalyticsPage: React.FC = () => {
                 </PieChart>
               </ResponsiveContainer>
 
-              {/* Custom Legend */}
               <div className="flex flex-wrap gap-4 justify-center lg:justify-start text-sm">
                 {statusData.map((entry, index) => (
                   <div key={index} className="flex items-center gap-2">

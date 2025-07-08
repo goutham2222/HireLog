@@ -25,26 +25,9 @@ export const ApplicationsPage: React.FC = () => {
   const [resumeFilter, setResumeFilter] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
-
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   const selectedApplication = applications.find(app => app.id === selectedApplicationId) || null;
-
-  const toggleStatus = (status: string) => {
-    setSelectedStatuses(prev =>
-      prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]
-    );
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const handleEditClick = () => {
     if (selectedApplicationId) setIsModalOpen(true);
@@ -73,6 +56,22 @@ export const ApplicationsPage: React.FC = () => {
     setSelectedApplicationId(null);
   };
 
+  const toggleStatus = (status: string) => {
+    setSelectedStatuses(prev =>
+      prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]
+    );
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const filtered = applications
     .filter(app =>
       app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -89,10 +88,6 @@ export const ApplicationsPage: React.FC = () => {
       const dateB = new Date(b.appliedDate).getTime();
       return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
     });
-
-  const handleExport = (format: 'csv' | 'json') => {
-    exportApplications(format, filtered);
-  };
 
   return (
     <div className="min-h-screen w-full p-6 bg-gray-50 flex flex-col">
@@ -131,7 +126,7 @@ export const ApplicationsPage: React.FC = () => {
           className="px-4 py-2 border rounded-md shadow-sm w-96"
         />
 
-        {/* Status Multi-select Dropdown */}
+        {/* Status Dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen(prev => !prev)}
@@ -244,9 +239,7 @@ export const ApplicationsPage: React.FC = () => {
                 <tr
                   key={app.id}
                   onClick={() => setSelectedApplicationId(app.id)}
-                  className={`border-b hover:bg-gray-50 cursor-pointer ${
-                    selectedApplicationId === app.id ? 'bg-blue-50' : ''
-                  }`}
+                  className={`border-b hover:bg-gray-50 cursor-pointer ${selectedApplicationId === app.id ? 'bg-blue-50' : ''}`}
                 >
                   <td className="px-4 py-3 text-center">
                     <input
@@ -270,13 +263,13 @@ export const ApplicationsPage: React.FC = () => {
       {/* Export Buttons */}
       <div className="mt-6 flex justify-center gap-4">
         <button
-          onClick={() => handleExport('json')}
+          onClick={() => exportApplications('json', filtered)}
           className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
         >
           Export JSON
         </button>
         <button
-          onClick={() => handleExport('csv')}
+          onClick={() => exportApplications('csv', filtered)}
           className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
         >
           Export CSV
@@ -287,11 +280,7 @@ export const ApplicationsPage: React.FC = () => {
       {isModalOpen && selectedApplication && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6 overflow-y-auto max-h-[90vh]">
-            <ApplicationForm
-              application={selectedApplication}
-              onSave={handleSave}
-              onCancel={handleCancel}
-            />
+            <ApplicationForm application={selectedApplication} onSave={handleSave} onCancel={handleCancel} />
           </div>
         </div>
       )}
