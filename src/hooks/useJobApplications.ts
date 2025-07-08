@@ -1,4 +1,3 @@
-// src/hooks/useJobApplications.ts
 import { useEffect, useState } from 'react';
 import { JobApplication } from '../types';
 import { v4 as uuidv4 } from 'uuid';
@@ -32,22 +31,32 @@ export const useJobApplications = () => {
     setApplications(prev => prev.filter(app => app.id !== id));
   };
 
-  const exportApplications = async (format: 'csv' | 'json') => {
-    const data =
-      format === 'json'
-        ? JSON.stringify(applications, null, 2)
-        : [
-            ['ID', 'Role', 'Company', 'Status', 'AppliedDate'],
-            ...applications.map(a => [
-              a.id,
-              a.role,
-              a.company,
-              a.status,
-              a.appliedDate,
-            ]),
-          ]
-            .map(row => row.join(','))
-            .join('\n');
+  const exportApplications = async (
+    format: 'csv' | 'json',
+    exportData?: JobApplication[]
+  ) => {
+    const dataToExport = exportData ?? applications;
+
+    if (dataToExport.length === 0) {
+      alert('No applications to export.');
+      return;
+    }
+
+    let data: string;
+
+    if (format === 'json') {
+      data = JSON.stringify(dataToExport, null, 2);
+    } else {
+      // CSV Header
+      const headers = Object.keys(dataToExport[0]);
+      const rows = dataToExport.map(app =>
+        headers.map(key => {
+          const value = (app as any)[key];
+          return `"${(value ?? '').toString().replace(/"/g, '""')}"`;
+        }).join(',')
+      );
+      data = [headers.join(','), ...rows].join('\n');
+    }
 
     const blob = new Blob([data], {
       type: format === 'json' ? 'application/json' : 'text/csv',
