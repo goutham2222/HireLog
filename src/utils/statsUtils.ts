@@ -10,7 +10,13 @@ export interface DashboardStats {
   weeklyCount: number;
   monthlyCount: number;
   applicationsByStatus: { status: ApplicationStatus; count: number }[];
+  averageApplicationsPerDay: number; // ✅ added
 }
+
+// Normalize date to local midnight safely
+const normalizeToLocalMidnight = (date: Date): Date => {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+};
 
 export function calculateStats(applications: JobApplication[]): DashboardStats {
   const statusCounts: StatusCounts = {
@@ -21,55 +27,55 @@ export function calculateStats(applications: JobApplication[]): DashboardStats {
     pending: 0,
   };
 
-  const applicationsByDateMap = new Map<string, number>();
-  const now = new Date();
+  const applicationsByDateMap = new Map<number, number>();
+  const now = normalizeToLocalMidnight(new Date());
 
   for (const app of applications) {
-    // Count status
-    if (statusCounts[app.status]) {
-      statusCounts[app.status]++;
-    } else {
-      statusCounts[app.status] = 1;
-    }
+    // Parse appliedDate and normalize it
+    const parsed = new Date(app.appliedDate + 'T00:00:00'); // Force local timezone
+    const normalized = normalizeToLocalMidnight(parsed);
+    const timeKey = normalized.getTime();
 
-    // Count by appliedDate
-    const dateKey = new Date(app.appliedDate).toDateString();
-    applicationsByDateMap.set(dateKey, (applicationsByDateMap.get(dateKey) || 0) + 1);
+    console.log(
+      `[StatsUtils] App ID: ${app.id} | appliedDate: ${app.appliedDate} | Parsed: ${parsed.toISOString()} | Normalized: ${normalized.toDateString()}`
+    );
+
+    // Count status
+    statusCounts[app.status] = (statusCounts[app.status] || 0) + 1;
+
+    // Group by date
+    applicationsByDateMap.set(timeKey, (applicationsByDateMap.get(timeKey) || 0) + 1);
   }
 
-  const applicationsByDate = Array.from(applicationsByDateMap.entries()).map(([date, count]) => ({
-    date: new Date(date),
+  const applicationsByDate = Array.from(applicationsByDateMap.entries()).map(([timestamp, count]) => ({
+    date: new Date(timestamp),
     count,
   }));
 
-  const totalApplications = applications.length;
+  const isSameDay = (d: Date) => d.getTime() === now.getTime();
 
-  const isSameDay = (date: Date) =>
-    date.getDate() === now.getDate() &&
-    date.getMonth() === now.getMonth() &&
-    date.getFullYear() === now.getFullYear();
-
-  const isSameWeek = (date: Date) => {
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay());
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(endOfWeek.getDate() + 6);
-    return date >= startOfWeek && date <= endOfWeek;
+  const isSameWeek = (d: Date) => {
+    const dayOfWeek = (now.getDay() + 6) % 7; // Monday = 0
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - dayOfWeek);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    return d >= monday && d <= sunday;
   };
 
-  const isSameMonth = (date: Date) =>
-    date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  const isSameMonth = (d: Date) =>
+    d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
 
   const dailyCount = applicationsByDate
-    .filter((entry) => isSameDay(entry.date))
+    .filter(entry => isSameDay(entry.date))
     .reduce((sum, entry) => sum + entry.count, 0);
 
   const weeklyCount = applicationsByDate
-    .filter((entry) => isSameWeek(entry.date))
+    .filter(entry => isSameWeek(entry.date))
     .reduce((sum, entry) => sum + entry.count, 0);
 
   const monthlyCount = applicationsByDate
-    .filter((entry) => isSameMonth(entry.date))
+    .filter(entry => isSameMonth(entry.date))
     .reduce((sum, entry) => sum + entry.count, 0);
 
   const applicationsByStatus = Object.entries(statusCounts).map(([status, count]) => ({
@@ -77,13 +83,20 @@ export function calculateStats(applications: JobApplication[]): DashboardStats {
     count,
   }));
 
+  // ✅ NEW: Calculate average applications per unique applied day
+  const uniqueDays = applicationsByDate.length;
+  const averageApplicationsPerDay = uniqueDays > 0
+    ? applications.length / uniqueDays
+    : 0;
+
   return {
     statusCounts,
     applicationsByDate,
-    totalApplications,
+    totalApplications: applications.length,
     dailyCount,
     weeklyCount,
     monthlyCount,
     applicationsByStatus,
+    averageApplicationsPerDay, // ✅ added
   };
 }

@@ -60,29 +60,41 @@ export const AnalyticsPage: React.FC = () => {
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 flex flex-col items-center">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Application Status Distribution</h2>
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={100}
-                  dataKey="value"
-                  label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="flex flex-col lg:flex-row items-center justify-between w-full gap-6">
+              <ResponsiveContainer width="100%" height={240} minWidth={240}>
+                <PieChart>
+                  <Pie
+                    data={statusData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    dataKey="value"
+                    labelLine={false}
+                  >
+                    {statusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+
+              {/* Custom Legend */}
+              <div className="flex flex-wrap gap-4 justify-center lg:justify-start text-sm">
+                {statusData.map((entry, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+                    <span>{entry.name}: {entry.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Status Breakdown */}
         <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Status Breakdown</h2>
           <ResponsiveContainer width="100%" height={300}>
@@ -96,7 +108,7 @@ export const AnalyticsPage: React.FC = () => {
           </ResponsiveContainer>
         </div>
 
-        {/* Success Rate */}
+        {/* Success Metrics */}
         {stats.totalApplications > 0 && (
           <div className="bg-white rounded-xl shadow-md p-6 mt-8 border border-gray-100">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Success Metrics</h2>
@@ -115,7 +127,7 @@ export const AnalyticsPage: React.FC = () => {
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-purple-600">
-                  {Math.round(stats.totalApplications / 30)}
+                  {stats.averageApplicationsPerDay.toFixed(1)}
                 </div>
                 <div className="text-sm text-gray-600">Avg. Applications/Day</div>
               </div>
