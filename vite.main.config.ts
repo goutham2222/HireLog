@@ -4,13 +4,13 @@ import path from 'path';
 
 export default defineConfig({
   build: {
-    outDir: 'dist',
-    emptyOutDir: false,
+    outDir: '.vite/main/dist',
+    emptyOutDir: true,
     target: 'node16',
     lib: {
       entry: 'main.ts',
       formats: ['cjs'],
-      fileName: () => 'main.cjs'
+      fileName: () => 'main.cjs',
     },
     rollupOptions: {
       external: ['electron', 'better-sqlite3', 'fs', 'path', 'url', 'os'],
@@ -18,7 +18,7 @@ export default defineConfig({
         commonjs({
           dynamicRequireTargets: ['node_modules/better-sqlite3/**/*'],
           ignoreTryCatch: false,
-        })
+        }),
       ],
     },
   },

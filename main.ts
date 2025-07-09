@@ -37,14 +37,24 @@ const createWindow = () => {
     width,
     height,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.cjs'),
+      preload: path.resolve(__dirname, '../../../dist/preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
     },
   });
 
-  const indexPath = path.join(__dirname, '../dist-renderer/index.html');
-  mainWindow.loadFile(indexPath);
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow!.webContents.setZoomFactor(1.1);
+    mainWindow!.webContents.setVisualZoomLevelLimits(1, 1);
+  });
+
+  if (process.env.NODE_ENV === 'development') {
+    mainWindow.loadURL('http://localhost:5173');
+    //mainWindow.webContents.openDevTools(); // optional: opens DevTools
+  } else {
+    const indexPath = path.join(__dirname, '../dist-renderer/index.html');
+    mainWindow.loadFile(indexPath);
+  }
 
   mainWindow.on('closed', () => {
     mainWindow = null;

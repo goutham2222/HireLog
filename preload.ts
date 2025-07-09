@@ -1,9 +1,18 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('api', {
+  // Fetch all applications from SQLite
   getApplications: () => ipcRenderer.invoke('get-applications'),
-  saveApplication: (data: any) => ipcRenderer.invoke('save-application', data), // ✅ return value
+
+  // Save a new application entry
+  saveApplication: (data: any) => ipcRenderer.invoke('save-application', data),
+
+  // Delete an application by ID
   deleteApplication: (id: string) => ipcRenderer.send('delete-application', id),
-  updateApplication: (data: any) => ipcRenderer.invoke('update-application', data), // ✅ should return updated
+
+  // Update an existing application
+  updateApplication: (data: any) => ipcRenderer.invoke('update-application', data),
+
+  // Export applications to CSV or JSON
   exportApplications: (format: 'json' | 'csv') => ipcRenderer.invoke('export-applications', format),
 });
