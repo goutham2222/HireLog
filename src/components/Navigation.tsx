@@ -17,7 +17,7 @@ export const Navigation: React.FC = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-3">
             <Briefcase className="h-8 w-8 text-blue-600" />
-            <h1 className="text-xl font-bold text-gray-800">Job Tracker</h1>
+            <h1 className="text-xl font-bold text-gray-800">HireLog</h1>
           </div>
           
           <div className="flex space-x-1">

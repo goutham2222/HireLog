@@ -8,8 +8,17 @@ let mainWindow: BrowserWindow | null = null;
 let db: DatabaseType | null = null;
 
 const initDB = () => {
-  const dbPath = path.join(app.getPath('userData'), 'applications.sqlite');
+  const dbDir = app.getPath('userData');
+  const dbPath = path.join(dbDir, 'applications.sqlite');
+
+  // Ensure directory exists (usually does)
+  if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+  }
+
+  console.log('📁 Database Path:', dbPath);
   db = new Database(dbPath);
+
   db.prepare(`
     CREATE TABLE IF NOT EXISTS applications (
       id TEXT PRIMARY KEY,
@@ -33,7 +42,6 @@ const initDB = () => {
 const createWindow = () => {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
-  console.log('__dirname:', __dirname);
   mainWindow = new BrowserWindow({
     width,
     height,
@@ -51,7 +59,6 @@ const createWindow = () => {
 
   if (process.env.NODE_ENV === 'development') {
     mainWindow.loadURL('http://localhost:5173');
-    //mainWindow.webContents.openDevTools(); // optional: opens DevTools
   } else {
     const indexPath = path.join(__dirname, '../../../dist-renderer/index.html');
     mainWindow.loadFile(indexPath);
@@ -62,6 +69,7 @@ const createWindow = () => {
   });
 };
 
+// 🧩 IPC handlers
 ipcMain.handle('get-applications', () => {
   return db!.prepare('SELECT * FROM applications ORDER BY appliedDate DESC').all();
 });
@@ -76,20 +84,9 @@ ipcMain.handle('save-application', (_event, data) => {
   `);
 
   stmt.run(
-    data.id,
-    data.role,
-    data.jobTitle,
-    data.company,
-    data.appliedDate,
-    data.salaryRange,
-    data.jobUrl,
-    data.followUpDate,
-    data.resumeUsed,
-    data.status,
-    data.location,
-    data.contactPerson,
-    data.coverLetter,
-    data.notes
+    data.id, data.role, data.jobTitle, data.company, data.appliedDate, data.salaryRange,
+    data.jobUrl, data.followUpDate, data.resumeUsed, data.status, data.location,
+    data.contactPerson, data.coverLetter, data.notes
   );
 
   return data;
