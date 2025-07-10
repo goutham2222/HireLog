@@ -5,6 +5,7 @@
   "main": ".vite/main/dist/main.cjs",
   "type": "module",
   "scripts": {
+    "clean": "rm -rf dist dist-renderer .vite out release",
     "dev": "electron-forge start",
     "build": "vite build --config vite.renderer.config.ts && vite build --config vite.preload.config.ts && vite build --config vite.main.config.ts",
     "start-electron": "electron .vite/main/dist/main.cjs",
@@ -16,7 +17,7 @@
       "packagerConfig": {
         "asar": false,
         "ignore": [
-          "out", 
+          "out",
           "release"
         ],
         "prune": false,
@@ -24,36 +25,48 @@
       },
       "makers": [
         {
-          "name": "@electron-forge/maker-zip"
+          "name": "@electron-forge/maker-dmg",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "platforms": [
+            "win32"
+          ],
+          "config": {
+            "name": "jobapplicationtracker"
+          }
         }
       ],
       "plugins": [
-      {
-        "name": "@electron-forge/plugin-vite",
-        "config": {
-          "buildDependenciesFrom": "dependencies",
-          "includeNodeModules": {
-            "better-sqlite3": true
-          },
-          "build": [
-            {
-              "entry": "main.ts",
-              "config": "vite.main.config.ts"
+        {
+          "name": "@electron-forge/plugin-vite",
+          "config": {
+            "buildDependenciesFrom": "dependencies",
+            "includeNodeModules": {
+              "better-sqlite3": true
             },
-            {
-              "entry": "preload.ts",
-              "config": "vite.preload.config.ts"
-            }
-          ],
-          "renderer": [
-            {
-              "entry": "src/main.tsx",
-              "config": "vite.renderer.config.ts"
-            }
-          ]
+            "build": [
+              {
+                "entry": "main.ts",
+                "config": "vite.main.config.ts"
+              },
+              {
+                "entry": "preload.ts",
+                "config": "vite.preload.config.ts"
+              }
+            ],
+            "renderer": [
+              {
+                "entry": "src/main.tsx",
+                "config": "vite.renderer.config.ts"
+              }
+            ]
+          }
         }
-      }
-    ]
+      ]
     }
   },
   "dependencies": {
@@ -69,6 +82,8 @@
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.8.1",
+    "@electron-forge/maker-dmg": "^7.8.1",
+    "@electron-forge/maker-squirrel": "^7.8.1",
     "@electron-forge/maker-zip": "^7.8.1",
     "@electron-forge/plugin-vite": "^7.8.1",
     "@electron/rebuild": "^4.0.1",

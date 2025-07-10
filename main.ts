@@ -33,11 +33,12 @@ const initDB = () => {
 const createWindow = () => {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
+  console.log('__dirname:', __dirname);
   mainWindow = new BrowserWindow({
     width,
     height,
     webPreferences: {
-      preload: path.resolve(__dirname, '../../../dist/preload.cjs'),
+      preload: path.join(__dirname, '../../../dist/preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
     },
@@ -52,7 +53,7 @@ const createWindow = () => {
     mainWindow.loadURL('http://localhost:5173');
     //mainWindow.webContents.openDevTools(); // optional: opens DevTools
   } else {
-    const indexPath = path.join(__dirname, '../dist-renderer/index.html');
+    const indexPath = path.join(__dirname, '../../../dist-renderer/index.html');
     mainWindow.loadFile(indexPath);
   }
 
