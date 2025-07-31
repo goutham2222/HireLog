@@ -58,6 +58,14 @@ If you're unable to open the app due to macOS security settings:
 2. Type the following command (but **don’t press Enter yet**):
    ```bash
    xattr -cr 
+3. Open your Applications folder and drag HireLog.app into Terminal
+   It should look like:
+   ```bash
+   xattr -cr /Applications/HireLog.app
+4. Press Enter and launch the app again
+
+⚠️ Currently, HireLog is only available for macOS.
+Support for Windows and Linux is planned in future updates.
 
 ---
 
@@ -82,21 +90,23 @@ If you're unable to open the app due to macOS security settings:
 
 ## 📁 Folder Structure
 
-├── dist/ # Electron build output
-├── dist-renderer/ # Vite-rendered frontend output
-├── out/ # Auto-generated .dmg builds
-├── public/ # Static files
-├── scripts/ # Utility scripts (cleaning, building)
+```
+├── dist/                         # Electron build output
+├── dist-renderer/               # Vite-rendered frontend output
+├── out/                         # Auto-generated .dmg builds (Electron Forge)
+├── public/                      # Static assets (icons, banners, etc.)
+├── scripts/                     # Utility scripts (cleaning, release tagging, etc.)
 ├── src/
-│ ├── components/ # Reusable UI components
-│ ├── database/ # SQLite logic (better-sqlite3 integration)
-│ ├── hooks/ # Custom React hooks
-│ ├── main/ # Electron main process code (main.ts)
-│ ├── pages/ # Pages (Applications, Add, Analytics)
-│ ├── preload/ # Preload script for IPC (preload.ts)
-│ └── types/ # TypeScript interfaces
-├── forge.config.js # Electron Forge configuration
-├── package.json # Project metadata and scripts
-├── vite.main.config.ts # Vite config for main process
-├── vite.preload.config.ts # Vite config for preload script
-└── vite.renderer.config.ts# Vite config for frontend
+│   ├── components/              # Reusable React components (e.g., Modals, Forms)
+│   ├── database/                # SQLite logic using better-sqlite3
+│   ├── hooks/                   # Custom React hooks for logic reuse
+│   ├── main/                    # Electron main process code (main.ts)
+│   ├── pages/                   # Pages: Applications, Add, Analytics
+│   ├── preload/                 # Preload scripts for IPC bridging (preload.ts)
+│   └── types/                   # TypeScript interfaces and shared types
+├── forge.config.js              # Electron Forge packaging configuration
+├── package.json                 # App metadata, dependencies, and scripts
+├── vite.main.config.ts          # Vite config for Electron main process
+├── vite.preload.config.ts       # Vite config for preload script
+└── vite.renderer.config.ts      # Vite config for frontend renderer
+```
