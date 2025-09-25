@@ -91,22 +91,34 @@ Support for Windows and Linux is planned in future updates.
 ## 📁 Folder Structure
 
 ```
-├── dist/                         # Electron build output
-├── dist-renderer/               # Vite-rendered frontend output
-├── out/                         # Auto-generated .dmg builds (Electron Forge)
-├── public/                      # Static assets (icons, banners, etc.)
-├── scripts/                     # Utility scripts (cleaning, release tagging, etc.)
-├── src/
-│   ├── components/              # Reusable React components (e.g., Modals, Forms)
-│   ├── database/                # SQLite logic using better-sqlite3
-│   ├── hooks/                   # Custom React hooks for logic reuse
-│   ├── main/                    # Electron main process code (main.ts)
-│   ├── pages/                   # Pages: Applications, Add, Analytics
-│   ├── preload/                 # Preload scripts for IPC bridging (preload.ts)
-│   └── types/                   # TypeScript interfaces and shared types
-├── forge.config.js              # Electron Forge packaging configuration
-├── package.json                 # App metadata, dependencies, and scripts
-├── vite.main.config.ts          # Vite config for Electron main process
-├── vite.preload.config.ts       # Vite config for preload script
-└── vite.renderer.config.ts      # Vite config for frontend renderer
+├── assets/ # App-level static assets (if any)
+├── node_modules/ # Node dependencies
+├── screenshots/ # App UI screenshots for README
+├── scripts/ # Utility scripts (e.g., clean-db.js)
+├── src/ # Source code
+│ ├── components/ # Reusable UI components (Form, Layout, Nav, etc.)
+│ ├── hooks/ # Custom React hooks (e.g., useJobApplications)
+│ ├── pages/ # Main app views (Applications, Add, Analytics)
+│ ├── types/ # TypeScript interfaces and types
+│ ├── utils/ # Utility functions (date, filter, stats)
+│ ├── App.tsx # Root React component
+│ ├── global.d.ts # Global type declarations
+│ ├── index.css # Tailwind global styles
+│ ├── index.html # Root HTML file for Vite
+│ └── main.tsx # React app entry point
+├── main.ts # Electron main process entry
+├── preload.ts # Electron preload script for IPC
+├── README.md # Project documentation
+├── vite.main.config.ts # Vite config for Electron main process
+├── vite.preload.config.ts # Vite config for preload script
+├── vite.renderer.config.ts # Vite config for frontend renderer
+├── tsconfig.json # TypeScript compiler config
+├── tsconfig.app.json # TypeScript config for renderer
+├── tsconfig.node.json # TypeScript config for main/preload
+├── tailwind.config.js # Tailwind CSS configuration
+├── package.json # Project metadata and scripts
+├── package-lock.json # NPM dependency lock file
+├── eslint.config.js # ESLint configuration
+├── postcss.config.cjs # PostCSS configuration
+├── config.json
 ```

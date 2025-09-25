@@ -1,19 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { JobApplication } from '../types';
 import { Save, X } from 'lucide-react';
+import { ROLE_OPTIONS } from '../constants/roles';
 
 interface ApplicationFormProps {
   application?: JobApplication;
   onSave: (application: Omit<JobApplication, 'id'>) => void;
   onCancel: () => void;
 }
-
-const roleOptions = [
-  'Data Engineer', 'Data Analyst', 'Data Scientist', 'Software Engineer',
-  'Frontend Developer', 'Backend Developer', 'Full Stack Developer', 'DevOps Engineer',
-  'Product Manager', 'UX/UI Designer', 'Business Analyst', 'Machine Learning Engineer',
-  'Cloud Engineer', 'Mobile Developer', 'Other',
-];
 
 export const ApplicationForm: React.FC<ApplicationFormProps> = ({
   application,
@@ -97,8 +91,10 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
               className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             >
               <option value="">Select a role</option>
-              {roleOptions.map(role => (
-                <option key={role} value={role}>{role}</option>
+              {ROLE_OPTIONS.filter(r => r !== 'All').map(role => (
+                <option key={role} value={role}>
+                  {role}
+                </option>
               ))}
             </select>
           </div>

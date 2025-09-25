@@ -1,8 +1,11 @@
+// src/pages/ApplicationsPage.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { ApplicationForm } from '../components/ApplicationForm';
 import { JobApplication } from '../types';
 import { useJobApplications } from '../hooks/useJobApplications';
+import { ApplicationDetailsModal } from '../components/ApplicationDetailsModal';
+import { ROLE_OPTIONS } from '../constants/roles';
 
 const statusOptions = ['applied', 'interview', 'rejected', 'accepted', 'pending'];
 
@@ -15,7 +18,8 @@ export const ApplicationsPage: React.FC = () => {
     exportApplications,
   } = useJobApplications();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -30,7 +34,7 @@ export const ApplicationsPage: React.FC = () => {
   const selectedApplication = applications.find(app => app.id === selectedApplicationId) || null;
 
   const handleEditClick = () => {
-    if (selectedApplicationId) setIsModalOpen(true);
+    if (selectedApplicationId) setIsEditModalOpen(true);
   };
 
   const handleDeleteClick = () => {
@@ -47,12 +51,12 @@ export const ApplicationsPage: React.FC = () => {
     } else {
       await addApplication(data);
     }
-    setIsModalOpen(false);
+    setIsEditModalOpen(false);
     setSelectedApplicationId(null);
   };
 
   const handleCancel = () => {
-    setIsModalOpen(false);
+    setIsEditModalOpen(false);
     setSelectedApplicationId(null);
   };
 
@@ -158,27 +162,17 @@ export const ApplicationsPage: React.FC = () => {
           )}
         </div>
 
+        {/* Role Filter */}
         <select
           value={roleFilter}
           onChange={e => setRoleFilter(e.target.value)}
           className="px-4 py-2 border rounded-md shadow-sm"
         >
-          <option value="All">All Roles</option>
-          <option value="Data Engineer">Data Engineer</option>
-          <option value="Data Analyst">Data Analyst</option>
-          <option value="Data Scientist">Data Scientist</option>
-          <option value="Software Engineer">Software Engineer</option>
-          <option value="Frontend Developer">Frontend Developer</option>
-          <option value="Backend Developer">Backend Developer</option>
-          <option value="Full Stack Developer">Full Stack Developer</option>
-          <option value="DevOps Engineer">DevOps Engineer</option>
-          <option value="Product Manager">Product Manager</option>
-          <option value="UX/UI Designer">UX/UI Designer</option>
-          <option value="Business Analyst">Business Analyst</option>
-          <option value="Machine Learning Engineer">Machine Learning Engineer</option>
-          <option value="Cloud Engineer">Cloud Engineer</option>
-          <option value="Mobile Developer">Mobile Developer</option>
-          <option value="Other">Other</option>
+          {ROLE_OPTIONS.map(role => (
+            <option key={role} value={role}>
+              {role}
+            </option>
+          ))}
         </select>
 
         <button
@@ -226,7 +220,7 @@ export const ApplicationsPage: React.FC = () => {
               <th className="px-4 py-3 text-left">Job Title</th>
               <th className="px-4 py-3 text-left">Company</th>
               <th className="px-4 py-3 text-left">Applied Date</th>
-              <th className="px-4 py-3 text-left">Salary</th>
+              <th className="px-4 py-3 text-left">Details</th>
             </tr>
           </thead>
           <tbody>
@@ -252,7 +246,18 @@ export const ApplicationsPage: React.FC = () => {
                   <td className="px-4 py-3">{app.jobTitle}</td>
                   <td className="px-4 py-3">{app.company}</td>
                   <td className="px-4 py-3">{app.appliedDate}</td>
-                  <td className="px-4 py-3">{app.salaryRange || '-'}</td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedApplicationId(app.id);
+                        setIsDetailsModalOpen(true);
+                      }}
+                      className="text-blue-600 underline hover:text-blue-800"
+                    >
+                      View
+                    </button>
+                  </td>
                 </tr>
               ))
             )}
@@ -277,12 +282,20 @@ export const ApplicationsPage: React.FC = () => {
       </div>
 
       {/* Edit Modal */}
-      {isModalOpen && selectedApplication && (
+      {isEditModalOpen && selectedApplication && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6 overflow-y-auto max-h-[90vh]">
             <ApplicationForm application={selectedApplication} onSave={handleSave} onCancel={handleCancel} />
           </div>
         </div>
+      )}
+
+      {/* Details Modal */}
+      {isDetailsModalOpen && selectedApplication && (
+        <ApplicationDetailsModal
+          application={selectedApplication}
+          onClose={() => setIsDetailsModalOpen(false)}
+        />
       )}
     </div>
   );

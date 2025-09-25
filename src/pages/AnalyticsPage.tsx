@@ -9,6 +9,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell,
 } from 'recharts';
+import { ROLE_OPTIONS } from '../constants/roles';
+
 
 export const AnalyticsPage: React.FC = () => {
   const { applications } = useJobApplications();
@@ -47,22 +49,11 @@ export const AnalyticsPage: React.FC = () => {
             onChange={e => setRoleFilter(e.target.value)}
             className="px-4 py-2 border rounded-md shadow-sm"
           >
-            <option value="All">All Roles</option>
-            <option value="Data Engineer">Data Engineer</option>
-            <option value="Data Analyst">Data Analyst</option>
-            <option value="Data Scientist">Data Scientist</option>
-            <option value="Software Engineer">Software Engineer</option>
-            <option value="Frontend Developer">Frontend Developer</option>
-            <option value="Backend Developer">Backend Developer</option>
-            <option value="Full Stack Developer">Full Stack Developer</option>
-            <option value="DevOps Engineer">DevOps Engineer</option>
-            <option value="Product Manager">Product Manager</option>
-            <option value="UX/UI Designer">UX/UI Designer</option>
-            <option value="Business Analyst">Business Analyst</option>
-            <option value="Machine Learning Engineer">Machine Learning Engineer</option>
-            <option value="Cloud Engineer">Cloud Engineer</option>
-            <option value="Mobile Developer">Mobile Developer</option>
-            <option value="Other">Other</option>
+            {ROLE_OPTIONS.map(role => (
+              <option key={role} value={role}>
+                {role}
+              </option>
+            ))}
           </select>
 
           <input

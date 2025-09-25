@@ -1,6 +1,8 @@
-import React from 'react';
+// src/components/ApplicationCard.tsx
+import React, { useState } from 'react';
 import { JobApplication } from '../types';
 import { FileText } from 'lucide-react';
+import { ApplicationDetailsModal } from './ApplicationDetailsModal';
 
 interface ApplicationCardProps {
   application: JobApplication;
@@ -15,6 +17,8 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
   onDelete,
   onStatusChange,
 }) => {
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
   return (
     <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
       <div className="flex justify-between items-start mb-4">
@@ -76,13 +80,26 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
             <p>{application.resumeUsed}</p>
           </div>
         </div>
-        {application.salaryRange && (
-          <div>
-            <span className="text-gray-500">Salary:</span>
-            <p>{application.salaryRange}</p>
-          </div>
-        )}
+
+        {/* NEW: Details link */}
+        <div>
+          <span className="text-gray-500">Details:</span>
+          <button
+            onClick={() => setIsDetailsModalOpen(true)}
+            className="text-blue-600 underline hover:text-blue-800 ml-2"
+          >
+            View
+          </button>
+        </div>
       </div>
+
+      {/* Details Modal */}
+      {isDetailsModalOpen && (
+        <ApplicationDetailsModal
+          application={application}
+          onClose={() => setIsDetailsModalOpen(false)}
+        />
+      )}
     </div>
   );
 };
