@@ -1,6 +1,7 @@
+// ApplicationForm.tsx
 import React, { useState, useEffect } from 'react';
 import { JobApplication } from '../types';
-import { Save, X } from 'lucide-react';
+import { Save, X, FilePlus } from 'lucide-react';
 import { ROLE_OPTIONS } from '../constants/roles';
 
 interface ApplicationFormProps {
@@ -57,6 +58,14 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
+  };
+
+  const handleFilePick = async () => {
+    const filePath = await window.api.pickResumeFile();
+    if (filePath) {
+      const fileName = filePath.split(/(\\|\/)/g).pop(); // Extract file name only
+      setFormData(prev => ({ ...prev, resumeUsed: fileName || '' }));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -128,15 +137,24 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
           {/* Resume Used */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Resume Used *</label>
-            <input
-              type="text"
-              name="resumeUsed"
-              value={formData.resumeUsed}
-              onChange={handleChange}
-              required
-              placeholder="e.g., Resume_v3.pdf"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                name="resumeUsed"
+                value={formData.resumeUsed}
+                readOnly
+                required
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+              />
+              <button
+                type="button"
+                onClick={handleFilePick}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+              >
+                <FilePlus className="w-4 h-4 mr-2" />
+                Browse
+              </button>
+            </div>
           </div>
 
           {/* Applied Date */}

@@ -29,11 +29,15 @@
       "makers": [
         {
           "name": "@electron-forge/maker-dmg",
-          "platforms": ["darwin"]
+          "platforms": [
+            "darwin"
+          ]
         },
         {
           "name": "@electron-forge/maker-squirrel",
-          "platforms": ["win32"],
+          "platforms": [
+            "win32"
+          ],
           "config": {
             "name": "hirelog"
           }
@@ -87,14 +91,14 @@
     "@electron/rebuild": "^4.0.1",
     "@rollup/plugin-commonjs": "^28.0.6",
     "@types/better-sqlite3": "^7.6.13",
-    "@types/electron": "^1.4.38",
+    "@types/electron": "^38.0.0",
     "@types/react-dom": "^19.1.6",
     "@types/recharts": "^1.8.29",
     "@types/uuid": "^10.0.0",
     "@types/wait-on": "^5.3.4",
     "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "^10.4.21",
-    "electron": "^37.2.0",
+    "electron": "^38.1.2",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.1",
     "vite": "^7.0.0",

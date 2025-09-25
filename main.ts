@@ -1,8 +1,9 @@
-import { app, BrowserWindow, ipcMain, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, screen, dialog } from 'electron';
 import * as path from 'path';
 import fs from 'fs';
 import Database from 'better-sqlite3';
 import type { Database as DatabaseType } from 'better-sqlite3';
+
 
 let mainWindow: BrowserWindow | null = null;
 let db: DatabaseType | null = null;
@@ -123,4 +124,18 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
+});
+
+ipcMain.handle('pick-resume-file', async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow!, {
+    title: 'Select Resume File',
+    properties: ['openFile'],
+    filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
+  });
+
+  if (canceled || filePaths.length === 0) {
+    return '';
+  }
+
+  return filePaths[0];
 });

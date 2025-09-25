@@ -15,4 +15,7 @@ contextBridge.exposeInMainWorld('api', {
 
   // Export applications to CSV or JSON
   exportApplications: (format: 'json' | 'csv') => ipcRenderer.invoke('export-applications', format),
+
+  // 👇 NEW: File picker for resume
+  pickResumeFile: () => ipcRenderer.invoke('pick-resume-file'),
 });
