@@ -15,7 +15,10 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "asar": false,
+        "asar": true,
+        "asarUnpack": [
+          "**/node_modules/better-sqlite3/**"
+        ],
         "productName": "HireLog",
         "name": "HireLog",
         "icon": "assets/icon",
@@ -23,7 +26,7 @@
           "out",
           "release"
         ],
-        "prune": false,
+        "prune": true,
         "overwrite": true
       },
       "makers": [
@@ -73,8 +76,6 @@
     }
   },
   "dependencies": {
-    "@types/react": "^19.1.8",
-    "@types/react-router-dom": "^5.3.3",
     "better-sqlite3": "^12.2.0",
     "lucide-react": "^0.525.0",
     "react": "^19.1.0",
@@ -91,8 +92,10 @@
     "@electron/rebuild": "^4.0.1",
     "@rollup/plugin-commonjs": "^28.0.6",
     "@types/better-sqlite3": "^7.6.13",
-    "@types/electron": "^1.6.12",
+    "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@types/react-router-dom": "^5.3.3",
+    "@types/electron": "^1.6.12",
     "@types/recharts": "^1.8.29",
     "@types/uuid": "^10.0.0",
     "@types/wait-on": "^5.3.4",

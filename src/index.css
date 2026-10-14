@@ -2,17 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Ensure full height for scrolling layout */
+:root {
+  --color-canvas: #f6f4f1;
+  --color-surface: #ffffff;
+  --color-ink: #1c1917;
+  --color-muted: #57534e;
+  --color-line: #e7e5e4;
+  --color-accent: #0f766e;
+  --color-accent-hover: #115e59;
+  --color-accent-soft: #ccfbf1;
+  --color-applied: #2563eb;
+  --color-interview: #d97706;
+  --color-accepted: #059669;
+  --color-rejected: #dc2626;
+  --color-pending: #64748b;
+}
+
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-family: 'Inter', sans-serif;
-  background-color: #f9fafb; /* optional: clean background */
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
 }
 
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+@keyframes hirelog-fade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panel-fade {
+  animation: hirelog-fade 150ms ease-out;
 }

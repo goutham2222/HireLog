@@ -29,17 +29,16 @@ export const ApplicationDetailsModal: React.FC<ApplicationDetailsModalProps> = (
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-8 relative">
-        {/* Close (X) button */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40">
+      <div className="bg-surface rounded-xl border border-line max-w-2xl w-full p-8 relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+          className="absolute top-4 right-4 text-muted hover:text-ink text-xl"
         >
           ✖
         </button>
 
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Application Details</h2>
+        <h2 className="text-2xl font-bold mb-6 text-ink">Application Details</h2>
 
         {/* Grid for standard fields */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6 max-h-[65vh] overflow-y-auto pr-2">
@@ -49,19 +48,19 @@ export const ApplicationDetailsModal: React.FC<ApplicationDetailsModalProps> = (
 
             return (
               <div key={key} className="flex flex-col">
-                <span className="text-sm font-semibold text-gray-600 mb-1">{label}</span>
+                <span className="text-sm font-semibold text-muted mb-1">{label}</span>
                 {isLink ? (
                   <button
                     type="button"
                     onClick={() => {
                       void window.api.openExternal(String(value));
                     }}
-                    className="text-blue-600 underline hover:text-blue-800 text-left"
+                    className="text-accent underline hover:text-accent-hover text-left"
                   >
                     View Posting
                   </button>
                 ) : (
-                  <span className="text-gray-900 break-words">{value}</span>
+                  <span className={`text-ink break-words ${key === 'status' ? 'capitalize' : ''}`}>{value}</span>
                 )}
               </div>
             );
@@ -70,8 +69,8 @@ export const ApplicationDetailsModal: React.FC<ApplicationDetailsModalProps> = (
           {/* Special case: Cover Letter always at bottom */}
           {application.coverLetter && (
             <div className="col-span-1 sm:col-span-2 flex flex-col mt-4">
-              <span className="text-sm font-semibold text-gray-600 mb-1">Cover Letter</span>
-              <div className="text-gray-900 whitespace-pre-line border rounded-md p-3 bg-gray-50">
+              <span className="text-sm font-semibold text-muted mb-1">Cover Letter</span>
+              <div className="text-ink whitespace-pre-line border border-line rounded-lg p-3 bg-canvas">
                 {application.coverLetter}
               </div>
             </div>
@@ -82,7 +81,7 @@ export const ApplicationDetailsModal: React.FC<ApplicationDetailsModalProps> = (
         <div className="mt-8 flex justify-end">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+            className="px-6 py-2 border border-line text-ink rounded-lg hover:bg-canvas"
           >
             Close
           </button>

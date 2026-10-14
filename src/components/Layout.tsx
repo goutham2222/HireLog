@@ -11,8 +11,8 @@ export const Layout: React.FC = () => {
   }, [pathname]);
 
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-gradient-to-br from-blue-50 via-white to-teal-50">
-      <header className="shrink-0 z-50 bg-white shadow">
+    <div className="h-full flex flex-col overflow-hidden bg-canvas">
+      <header className="shrink-0 z-50 bg-surface border-b border-line">
         <Navigation />
       </header>
 

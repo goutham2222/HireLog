@@ -46,6 +46,7 @@ export const ApplicationsList: React.FC<ApplicationsListProps> = ({
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const moreFiltersRef = useRef<HTMLDivElement | null>(null);
 
   const statusOptions = ALL_STATUSES.filter(status => !excludeStatuses.includes(status));
   const selectedApplication = applications.find(app => app.id === selectedApplicationId) || null;
@@ -87,8 +88,12 @@ export const ApplicationsList: React.FC<ApplicationsListProps> = ({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setDropdownOpen(false);
+      }
+      if (moreFiltersRef.current && !moreFiltersRef.current.contains(target)) {
+        setShowMoreFilters(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -110,16 +115,19 @@ export const ApplicationsList: React.FC<ApplicationsListProps> = ({
       return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
     });
 
+  const extraFiltersActive = locationFilter !== '' || resumeFilter !== '' || sortOrder !== 'desc';
+  const controlClass = 'px-4 py-2 border border-line rounded-lg bg-surface text-ink shadow-sm';
+
   return (
-    <div className="h-full overflow-hidden p-6 bg-gray-50 flex flex-col">
+    <div className="h-full overflow-hidden p-6 bg-canvas flex flex-col">
       <div className="shrink-0 flex justify-between items-center mb-6 flex-wrap gap-4">
-        <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+        <h1 className="text-3xl font-bold text-ink">{title}</h1>
         <div className="flex gap-3">
           <button
             disabled={!selectedApplicationId || loading}
             onClick={handleEditClick}
-            className={`px-4 py-2 rounded-md text-white ${
-              selectedApplicationId && !loading ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'
+            className={`px-4 py-2 rounded-lg text-white ${
+              selectedApplicationId && !loading ? 'bg-accent hover:bg-accent-hover' : 'bg-line text-muted cursor-not-allowed'
             }`}
           >
             Edit
@@ -127,8 +135,8 @@ export const ApplicationsList: React.FC<ApplicationsListProps> = ({
           <button
             disabled={!selectedApplicationId || loading}
             onClick={handleDeleteClick}
-            className={`px-4 py-2 rounded-md text-white ${
-              selectedApplicationId && !loading ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-300 cursor-not-allowed'
+            className={`px-4 py-2 rounded-lg text-white ${
+              selectedApplicationId && !loading ? 'bg-status-rejected hover:opacity-90' : 'bg-line text-muted cursor-not-allowed'
             }`}
           >
             Delete
@@ -137,10 +145,10 @@ export const ApplicationsList: React.FC<ApplicationsListProps> = ({
       </div>
 
       {error && (
-        <p className="mb-4 text-sm text-red-600">{error}</p>
+        <p className="mb-4 text-sm text-status-rejected">{error}</p>
       )}
       {actionError && (
-        <p className="mb-4 text-sm text-red-600">{actionError}</p>
+        <p className="mb-4 text-sm text-status-rejected">{actionError}</p>
       )}
 
       <div className="shrink-0 flex flex-wrap items-center gap-4 mb-2">
@@ -149,13 +157,13 @@ export const ApplicationsList: React.FC<ApplicationsListProps> = ({
           value={searchTerm}
           onChange={event => setSearchTerm(event.target.value)}
           placeholder="Search job title or company..."
-          className="px-4 py-2 border rounded-md shadow-sm w-96"
+          className={`${controlClass} w-96`}
         />
 
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen(prev => !prev)}
-            className="flex items-center justify-between px-4 py-2 border rounded-md shadow-sm bg-white w-64"
+            className={`flex items-center justify-between ${controlClass} w-64`}
           >
             <span className="truncate">
               {selectedStatuses.length === 0
@@ -167,9 +175,9 @@ export const ApplicationsList: React.FC<ApplicationsListProps> = ({
             <ChevronDown size={16} className="ml-2" />
           </button>
           {dropdownOpen && (
-            <div className="absolute z-20 mt-2 w-64 bg-white border rounded-md shadow p-2 max-h-48 overflow-y-auto">
+            <div className="panel-fade absolute z-20 mt-2 w-64 bg-surface border border-line rounded-lg shadow-lg p-2 max-h-48 overflow-y-auto">
               {statusOptions.map(status => (
-                <label key={status} className="flex items-center space-x-2 py-1 px-2 hover:bg-gray-100 rounded">
+                <label key={status} className="flex items-center space-x-2 py-1 px-2 hover:bg-canvas rounded">
                   <input
                     type="checkbox"
                     checked={selectedStatuses.includes(status)}
@@ -186,7 +194,7 @@ export const ApplicationsList: React.FC<ApplicationsListProps> = ({
         <select
           value={roleFilter}
           onChange={event => setRoleFilter(event.target.value)}
-          className="px-4 py-2 border rounded-md shadow-sm"
+          className={controlClass}
         >
           {ROLE_OPTIONS.map(role => (
             <option key={role} value={role}>
@@ -195,49 +203,62 @@ export const ApplicationsList: React.FC<ApplicationsListProps> = ({
           ))}
         </select>
 
-        <button
-          onClick={() => setShowMoreFilters(prev => !prev)}
-          className="px-4 py-2 border rounded-md shadow-sm bg-white"
-        >
-          {showMoreFilters ? 'Hide Filters' : 'More Filters'}
-        </button>
+        <div className="relative" ref={moreFiltersRef}>
+          <button
+            onClick={() => setShowMoreFilters(prev => !prev)}
+            className={`flex items-center gap-2 ${controlClass} ${
+              extraFiltersActive ? 'border-accent text-accent' : ''
+            }`}
+          >
+            More Filters
+            <ChevronDown size={16} className={showMoreFilters ? 'rotate-180 transition-transform' : 'transition-transform'} />
+          </button>
+          {showMoreFilters && (
+            <div className="panel-fade absolute right-0 z-30 mt-2 w-80 rounded-xl border border-line bg-surface p-4 shadow-lg">
+              <div className="flex flex-col gap-3">
+                <input
+                  type="text"
+                  value={locationFilter}
+                  onChange={event => setLocationFilter(event.target.value)}
+                  placeholder="Filter by Location..."
+                  className={controlClass}
+                />
+                <input
+                  type="text"
+                  value={resumeFilter}
+                  onChange={event => setResumeFilter(event.target.value)}
+                  placeholder="Filter by Resume..."
+                  className={controlClass}
+                />
+                <select
+                  value={sortOrder}
+                  onChange={event => setSortOrder(event.target.value)}
+                  className={controlClass}
+                >
+                  <option value="desc">Sort by Newest</option>
+                  <option value="asc">Sort by Oldest</option>
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {showMoreFilters && (
-        <div className="shrink-0 flex flex-wrap items-center gap-4 mb-4">
-          <input
-            type="text"
-            value={locationFilter}
-            onChange={event => setLocationFilter(event.target.value)}
-            placeholder="Filter by Location..."
-            className="px-4 py-2 border rounded-md shadow-sm w-64"
-          />
-          <input
-            type="text"
-            value={resumeFilter}
-            onChange={event => setResumeFilter(event.target.value)}
-            placeholder="Filter by Resume..."
-            className="px-4 py-2 border rounded-md shadow-sm w-64"
-          />
-          <select
-            value={sortOrder}
-            onChange={event => setSortOrder(event.target.value)}
-            className="px-4 py-2 border rounded-md shadow-sm"
-          >
-            <option value="desc">Sort by Newest</option>
-            <option value="asc">Sort by Oldest</option>
-          </select>
-        </div>
-      )}
-
-      <div className="mt-4 flex-1 min-h-0 overflow-y-auto border rounded-lg shadow bg-white">
+      <div className="mt-4 flex-1 min-h-0 overflow-y-auto border border-line rounded-lg bg-surface">
         {loading ? (
-          <p className="text-center text-gray-500 py-6">Loading applications...</p>
+          <p className="text-center text-muted py-6">Loading applications...</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-100 sticky top-0 z-10">
+          <table className="w-full text-sm table-fixed">
+            <colgroup>
+              <col className="w-12" />
+              <col className="w-[calc(50%-3rem)]" />
+              <col />
+              <col className="w-36" />
+              <col className="w-24" />
+            </colgroup>
+            <thead className="bg-canvas sticky top-0 z-10">
               <tr>
-                <th className="px-4 py-3 w-12">Select</th>
+                <th className="px-4 py-3">Select</th>
                 <th className="px-4 py-3 text-left">Job Title</th>
                 <th className="px-4 py-3 text-left">Company</th>
                 <th className="px-4 py-3 text-left">Applied Date</th>
@@ -247,8 +268,8 @@ export const ApplicationsList: React.FC<ApplicationsListProps> = ({
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center text-gray-500 py-6">
-                    {error ? 'Applications could not be loaded.' : 'No applications found.'}
+                  <td colSpan={5} className="text-center text-muted py-6">
+                    {error ? 'Applications could not be loaded.' : (applications.length === 0 ? 'Nothing here yet.' : 'No matches.')}
                   </td>
                 </tr>
               ) : (
@@ -256,7 +277,7 @@ export const ApplicationsList: React.FC<ApplicationsListProps> = ({
                   <tr
                     key={app.id}
                     onClick={() => setSelectedApplicationId(app.id)}
-                    className={`border-b hover:bg-gray-50 cursor-pointer ${selectedApplicationId === app.id ? 'bg-blue-50' : ''}`}
+                    className={`border-b border-line hover:bg-canvas cursor-pointer ${selectedApplicationId === app.id ? 'bg-accent-soft' : ''}`}
                   >
                     <td className="px-4 py-3 text-center">
                       <input
@@ -266,8 +287,10 @@ export const ApplicationsList: React.FC<ApplicationsListProps> = ({
                         onChange={() => setSelectedApplicationId(app.id)}
                       />
                     </td>
-                    <td className="px-4 py-3" title={app.jobTitle}>{app.jobTitle}</td>
-                    <td className="px-4 py-3" title={app.company}>{app.company}</td>
+                    <td className="px-4 py-3 align-top overflow-hidden" title={app.jobTitle}>
+                      <p className="line-clamp-2 break-words">{app.jobTitle}</p>
+                    </td>
+                    <td className="px-4 py-3 align-top break-words" title={app.company}>{app.company}</td>
                     <td className="px-4 py-3 whitespace-nowrap">{app.appliedDate}</td>
                     <td className="px-4 py-3">
                       <button
@@ -276,7 +299,7 @@ export const ApplicationsList: React.FC<ApplicationsListProps> = ({
                           setSelectedApplicationId(app.id);
                           setIsDetailsModalOpen(true);
                         }}
-                        className="text-blue-600 underline hover:text-blue-800"
+                        className="text-accent underline hover:text-accent-hover"
                       >
                         View
                       </button>
@@ -290,8 +313,8 @@ export const ApplicationsList: React.FC<ApplicationsListProps> = ({
       </div>
 
       {isEditModalOpen && selectedApplication && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6 overflow-y-auto max-h-[90vh]">
+        <div className="fixed inset-0 z-50 bg-ink/40 flex items-center justify-center">
+          <div className="w-full max-w-4xl bg-canvas rounded-lg p-6 overflow-y-auto max-h-[90vh]">
             <ApplicationForm application={selectedApplication} onSave={handleSave} onCancel={handleCancel} />
           </div>
         </div>

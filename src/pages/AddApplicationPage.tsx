@@ -18,7 +18,7 @@ export const AddApplicationPage: React.FC = () => {
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-gray-50 py-10 px-4">
+    <div className="h-full overflow-y-auto bg-canvas py-10 px-4">
       <div className="max-w-4xl mx-auto">
         <ApplicationForm onSave={handleSave} onCancel={handleCancel} />
       </div>

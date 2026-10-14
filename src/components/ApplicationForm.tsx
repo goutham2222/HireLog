@@ -5,6 +5,9 @@ import { Save, X, FilePlus } from 'lucide-react';
 import { ROLE_OPTIONS } from '../constants/roles';
 import { formatLocalDateInput } from '../utils/dateUtils';
 
+const fieldClass = 'w-full px-4 py-2 border border-line rounded-lg bg-surface text-ink';
+const labelClass = 'block text-sm font-medium text-ink mb-2';
+
 interface ApplicationFormProps {
   application?: JobApplication;
   onSave: (application: Omit<JobApplication, 'id'>) => void | Promise<void>;
@@ -89,14 +92,14 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+    <div className="bg-surface rounded-xl p-6 border border-line">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">
+        <h2 className="text-2xl font-bold text-ink">
           {application ? 'Edit Application' : 'Add New Application'}
         </h2>
         <button
           onClick={onCancel}
-          className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+          className="p-2 text-muted hover:text-ink transition-colors"
         >
           <X className="h-5 w-5" />
         </button>
@@ -106,13 +109,13 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Role */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Role *</label>
+            <label className={labelClass}>Role *</label>
             <select
               name="role"
               value={formData.role}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className={fieldClass}
             >
               <option value="">Select a role</option>
               {ROLE_OPTIONS.filter(r => r !== 'All').map(role => (
@@ -125,33 +128,33 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
 
           {/* Job Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Job Title *</label>
+            <label className={labelClass}>Job Title *</label>
             <input
               type="text"
               name="jobTitle"
               value={formData.jobTitle}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className={fieldClass}
             />
           </div>
 
           {/* Company */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Company *</label>
+            <label className={labelClass}>Company *</label>
             <input
               type="text"
               name="company"
               value={formData.company}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className={fieldClass}
             />
           </div>
 
           {/* Resume Used */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Resume Used *</label>
+            <label className={labelClass}>Resume Used *</label>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -159,12 +162,12 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
                 value={formData.resumeUsed}
                 readOnly
                 required
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                className={`${fieldClass} bg-canvas text-muted`}
               />
               <button
                 type="button"
                 onClick={handleFilePick}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+                className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-hover flex items-center"
               >
                 <FilePlus className="w-4 h-4 mr-2" />
                 Browse
@@ -174,25 +177,25 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
 
           {/* Applied Date */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Applied Date *</label>
+            <label className={labelClass}>Applied Date *</label>
             <input
               type="date"
               name="appliedDate"
               value={formData.appliedDate}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className={fieldClass}
             />
           </div>
 
           {/* Status */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <label className={labelClass}>Status</label>
             <select
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className={fieldClass}
             >
               <option value="applied">Applied</option>
               <option value="interview">Interview</option>
@@ -204,111 +207,111 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
 
           {/* Salary Range */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Salary Range</label>
+            <label className={labelClass}>Salary Range</label>
             <input
               type="text"
               name="salaryRange"
               value={formData.salaryRange}
               onChange={handleChange}
               placeholder="e.g., $80,000 - $100,000"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className={fieldClass}
             />
           </div>
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+            <label className={labelClass}>Location</label>
             <input
               type="text"
               name="location"
               value={formData.location}
               onChange={handleChange}
               placeholder="e.g., Remote"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className={fieldClass}
             />
           </div>
 
           {/* Job URL */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Job URL</label>
+            <label className={labelClass}>Job URL</label>
             <input
               type="url"
               name="jobUrl"
               value={formData.jobUrl}
               onChange={handleChange}
               placeholder="https://..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className={fieldClass}
             />
           </div>
 
           {/* Contact Person */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Contact Person</label>
+            <label className={labelClass}>Contact Person</label>
             <input
               type="text"
               name="contactPerson"
               value={formData.contactPerson}
               onChange={handleChange}
               placeholder="e.g., Jane Doe"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className={fieldClass}
             />
           </div>
 
           {/* Follow-up Date */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Follow-up Date</label>
+            <label className={labelClass}>Follow-up Date</label>
             <input
               type="date"
               name="followUpDate"
               value={formData.followUpDate}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className={fieldClass}
             />
           </div>
         </div>
 
         {/* Cover Letter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Cover Letter</label>
+          <label className={labelClass}>Cover Letter</label>
           <textarea
             name="coverLetter"
             value={formData.coverLetter}
             onChange={handleChange}
             rows={3}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            className={fieldClass}
             placeholder="Optional notes or summary of your cover letter"
           />
         </div>
 
         {/* Notes */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+          <label className={labelClass}>Notes</label>
           <textarea
             name="notes"
             value={formData.notes}
             onChange={handleChange}
             rows={3}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            className={fieldClass}
             placeholder="Any relevant notes or reminders"
           />
         </div>
 
         {/* Buttons */}
-        {saveError && <p className="text-sm text-red-600">{saveError}</p>}
+        {saveError && <p className="text-sm text-status-rejected">{saveError}</p>}
 
         <div className="flex justify-end space-x-4 pt-4">
           <button
             type="button"
             onClick={onCancel}
             disabled={saving}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-60"
+            className="px-6 py-2 border border-line text-ink rounded-lg hover:bg-canvas disabled:opacity-60"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center disabled:bg-blue-300"
+            className="px-6 py-2 bg-accent text-white rounded-lg hover:bg-accent-hover flex items-center"
           >
             <Save className="h-4 w-4 mr-2" />
             <span>{saving ? 'Saving...' : `${application ? 'Update' : 'Save'} Application`}</span>

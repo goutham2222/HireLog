@@ -12,6 +12,7 @@ export interface DashboardStats {
   applicationsByStatus: { status: ApplicationStatus; count: number }[];
   averageApplicationsPerDay: number;
   trendLast30Days: { date: Date; count: number }[];
+  followUpsDue: number;
 }
 
 const normalizeToLocalMidnight = (date: Date): Date => {
@@ -29,9 +30,21 @@ export function calculateStats(applications: JobApplication[]): DashboardStats {
 
   const applicationsByDateMap = new Map<number, number>();
   const now = normalizeToLocalMidnight(new Date());
+  const followUpHorizon = new Date(now);
+  followUpHorizon.setDate(now.getDate() + 7);
+  let followUpsDue = 0;
 
   for (const app of applications) {
     statusCounts[app.status] = (statusCounts[app.status] || 0) + 1;
+
+    const followUpOnly = String(app.followUpDate ?? '').slice(0, 10);
+    if (followUpOnly) {
+      const followUp = normalizeToLocalMidnight(new Date(`${followUpOnly}T00:00:00`));
+      const followUpTime = followUp.getTime();
+      if (!Number.isNaN(followUpTime) && followUpTime >= now.getTime() && followUpTime <= followUpHorizon.getTime()) {
+        followUpsDue += 1;
+      }
+    }
 
     const dateOnly = String(app.appliedDate ?? '').slice(0, 10);
     const parsed = new Date(`${dateOnly}T00:00:00`);
@@ -102,5 +115,6 @@ export function calculateStats(applications: JobApplication[]): DashboardStats {
     applicationsByStatus,
     averageApplicationsPerDay,
     trendLast30Days,
+    followUpsDue,
   };
 }

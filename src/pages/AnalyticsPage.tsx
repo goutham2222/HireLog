@@ -6,11 +6,17 @@ import {
   Calendar, TrendingUp, Clock, CheckCircle, Target,
 } from 'lucide-react';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell,
+  CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis,
 } from 'recharts';
 import { ROLE_OPTIONS } from '../constants/roles';
 
+const statusColors: Record<string, string> = {
+  Applied: 'var(--color-applied)',
+  Interview: 'var(--color-interview)',
+  Pending: 'var(--color-pending)',
+  Rejected: 'var(--color-rejected)',
+  Accepted: 'var(--color-accepted)',
+};
 
 export const AnalyticsPage: React.FC = () => {
   const { applications, loading, error } = useJobApplications();
@@ -25,13 +31,14 @@ export const AnalyticsPage: React.FC = () => {
   });
 
   const stats = calculateStats(filteredApplications);
+  const statusMax = Math.max(stats.totalApplications, 1);
 
   const statusData = [
-    { name: 'Applied', value: stats.statusCounts.applied || 0, color: '#3B82F6' },
-    { name: 'Interview', value: stats.statusCounts.interview || 0, color: '#F59E0B' },
-    { name: 'Pending', value: stats.statusCounts.pending || 0, color: '#6B7280' },
-    { name: 'Rejected', value: stats.statusCounts.rejected || 0, color: '#EF4444' },
-    { name: 'Accepted', value: stats.statusCounts.accepted || 0, color: '#10B981' },
+    { name: 'Applied', value: stats.statusCounts.applied || 0 },
+    { name: 'Interview', value: stats.statusCounts.interview || 0 },
+    { name: 'Pending', value: stats.statusCounts.pending || 0 },
+    { name: 'Rejected', value: stats.statusCounts.rejected || 0 },
+    { name: 'Accepted', value: stats.statusCounts.accepted || 0 },
   ];
 
   const applicationTrend = stats.trendLast30Days.map(item => ({
@@ -39,9 +46,18 @@ export const AnalyticsPage: React.FC = () => {
     count: item.count
   }));
 
+  const interviewRate = stats.totalApplications > 0
+    ? ((stats.statusCounts.interview || 0) / stats.totalApplications * 100).toFixed(1)
+    : '0.0';
+  const offerRate = stats.totalApplications > 0
+    ? ((stats.statusCounts.accepted || 0) / stats.totalApplications * 100).toFixed(1)
+    : '0.0';
+
+  const controlClass = 'px-4 py-2 border border-line rounded-lg bg-surface text-ink shadow-sm';
+
   if (loading) {
     return (
-      <div className="h-full overflow-y-auto w-full bg-gray-50 px-4 py-10 text-gray-600">
+      <div className="h-full overflow-y-auto w-full bg-canvas px-4 py-10 text-muted">
         Loading applications...
       </div>
     );
@@ -49,21 +65,20 @@ export const AnalyticsPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="h-full overflow-y-auto w-full bg-gray-50 px-4 py-10 text-red-600">
+      <div className="h-full overflow-y-auto w-full bg-canvas px-4 py-10 text-status-rejected">
         {error}
       </div>
     );
   }
 
   return (
-    <div className="h-full overflow-y-auto w-full bg-gray-50 px-4 py-10">
+    <div className="h-full overflow-y-auto w-full bg-canvas px-4 py-10">
       <div className="max-w-7xl mx-auto">
-        {/* Filters */}
         <div className="flex flex-wrap items-center gap-4 mb-6">
           <select
             value={roleFilter}
             onChange={e => setRoleFilter(e.target.value)}
-            className="px-4 py-2 border rounded-md shadow-sm"
+            className={controlClass}
           >
             {ROLE_OPTIONS.map(role => (
               <option key={role} value={role}>
@@ -77,113 +92,76 @@ export const AnalyticsPage: React.FC = () => {
             value={companyFilter}
             onChange={e => setCompanyFilter(e.target.value)}
             placeholder="Filter by Company..."
-            className="px-4 py-2 border rounded-md shadow-sm w-64"
+            className={`${controlClass} w-64`}
           />
         </div>
 
-        {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <StatsCard title="Total Applications" value={stats.totalApplications} icon={Target} color="bg-blue-600" />
-          <StatsCard title="Today" value={stats.dailyCount} icon={Calendar} color="bg-green-600" />
-          <StatsCard title="This Week" value={stats.weeklyCount} icon={TrendingUp} color="bg-purple-600" />
-          <StatsCard title="This Month" value={stats.monthlyCount} icon={Clock} color="bg-orange-600" />
-          <StatsCard title="Accepted" value={stats.statusCounts.accepted || 0} icon={CheckCircle} color="bg-emerald-600" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          <StatsCard title="Total Applications" value={stats.totalApplications} icon={Target} iconClassName="text-accent" />
+          <StatsCard title="Today" value={stats.dailyCount} icon={Calendar} iconClassName="text-accent" />
+          <StatsCard title="This Week" value={stats.weeklyCount} icon={TrendingUp} iconClassName="text-accent" />
+          <StatsCard title="This Month" value={stats.monthlyCount} icon={Clock} iconClassName="text-accent" />
+          <StatsCard title="Accepted" value={stats.statusCounts.accepted || 0} icon={CheckCircle} iconClassName="text-status-accepted" />
         </div>
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Application Trend (Last 30 Days)</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="bg-surface rounded-xl p-6 border border-line">
+            <h2 className="text-xl font-semibold text-ink mb-4">Application Trend (Last 30 Days)</h2>
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={applicationTrend}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
+                <CartesianGrid stroke="var(--color-line)" strokeDasharray="3 3" />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: 'var(--color-muted)' }} />
+                <YAxis tick={{ fontSize: 12, fill: 'var(--color-muted)' }} allowDecimals={false} />
                 <Tooltip />
                 <Line
                   type="monotone"
                   dataKey="count"
-                  stroke="#3B82F6"
+                  stroke="var(--color-accent)"
                   strokeWidth={2}
-                  dot={{ fill: '#3B82F6', strokeWidth: 2 }}
+                  dot={false}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 flex flex-col items-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Application Status Distribution</h2>
-            <div className="flex flex-col lg:flex-row items-center justify-between w-full gap-6">
-              <ResponsiveContainer width="100%" height={240} minWidth={240}>
-                <PieChart>
-                  <Pie
-                    data={statusData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    dataKey="value"
-                    labelLine={false}
-                  >
-                    {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-
-              <div className="flex flex-wrap gap-4 justify-center lg:justify-start text-sm">
-                {statusData.map((entry, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
-                    <span>{entry.name}: {entry.value}</span>
+          <div className="bg-surface rounded-xl p-6 border border-line">
+            <h2 className="text-xl font-semibold text-ink mb-4">Status</h2>
+            <div className="flex flex-col gap-4">
+              {statusData.map(entry => (
+                <div key={entry.name}>
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="text-ink">{entry.name}</span>
+                    <span className="text-muted">{entry.value}</span>
                   </div>
-                ))}
-              </div>
+                  <div className="h-1.5 rounded-full bg-canvas">
+                    <div
+                      className="h-1.5 rounded-full"
+                      style={{
+                        width: `${(entry.value / statusMax) * 100}%`,
+                        backgroundColor: statusColors[entry.name],
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Status Breakdown */}
-        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Status Breakdown</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={stats.applicationsByStatus}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="status" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Success Metrics */}
-        {stats.totalApplications > 0 && (
-          <div className="bg-white rounded-xl shadow-md p-6 mt-8 border border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Success Metrics</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">
-                  {((stats.statusCounts.interview || 0) / stats.totalApplications * 100).toFixed(1)}%
-                </div>
-                <div className="text-sm text-gray-600">Interview Rate</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-600">
-                  {((stats.statusCounts.accepted || 0) / stats.totalApplications * 100).toFixed(1)}%
-                </div>
-                <div className="text-sm text-gray-600">Success Rate</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600">
-                  {stats.averageApplicationsPerDay.toFixed(1)}
-                </div>
-                <div className="text-sm text-gray-600">Avg. Applications/Day</div>
-              </div>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-surface rounded-xl p-6 border border-line text-center">
+            <div className="text-3xl font-bold text-accent">{interviewRate}%</div>
+            <div className="text-sm text-muted mt-1">Interview Rate</div>
           </div>
-        )}
+          <div className="bg-surface rounded-xl p-6 border border-line text-center">
+            <div className="text-3xl font-bold text-status-accepted">{offerRate}%</div>
+            <div className="text-sm text-muted mt-1">Offer Rate</div>
+          </div>
+          <div className="bg-surface rounded-xl p-6 border border-line text-center">
+            <div className="text-3xl font-bold text-status-interview">{stats.followUpsDue}</div>
+            <div className="text-sm text-muted mt-1">Follow-ups Due in 7 Days</div>
+          </div>
+        </div>
       </div>
     </div>
   );
