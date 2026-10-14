@@ -9,17 +9,7 @@ export const AddApplicationPage: React.FC = () => {
   const { addApplication } = useJobApplications();
 
   const handleSave = async (data: Omit<JobApplication, 'id'>) => {
-    const safeData = {
-      ...data,
-      id: Date.now().toString(),
-      jobUrl: data.jobUrl ?? '',
-      followUpDate: data.followUpDate ?? '',
-      location: data.location ?? '',
-      contactPerson: data.contactPerson ?? '',
-      coverLetter: data.coverLetter ?? '',
-      notes: data.notes ?? '',
-    };
-    await addApplication(safeData);
+    await addApplication(data);
     navigate('/');
   };
 
@@ -28,7 +18,7 @@ export const AddApplicationPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen h-full overflow-y-auto bg-gray-50 py-10 px-4">
+    <div className="h-full overflow-y-auto bg-gray-50 py-10 px-4">
       <div className="max-w-4xl mx-auto">
         <ApplicationForm onSave={handleSave} onCancel={handleCancel} />
       </div>

@@ -1,12 +1,13 @@
 // ApplicationForm.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { JobApplication } from '../types';
 import { Save, X, FilePlus } from 'lucide-react';
 import { ROLE_OPTIONS } from '../constants/roles';
+import { formatLocalDateInput } from '../utils/dateUtils';
 
 interface ApplicationFormProps {
   application?: JobApplication;
-  onSave: (application: Omit<JobApplication, 'id'>) => void;
+  onSave: (application: Omit<JobApplication, 'id'>) => void | Promise<void>;
   onCancel: () => void;
 }
 
@@ -20,7 +21,7 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
     jobTitle: '',
     company: '',
     resumeUsed: '',
-    appliedDate: new Date().toISOString().split('T')[0],
+    appliedDate: formatLocalDateInput(),
     status: 'applied',
     coverLetter: '',
     jobUrl: '',
@@ -30,6 +31,9 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
     contactPerson: '',
     followUpDate: '',
   });
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const savingRef = useRef(false);
 
   useEffect(() => {
     if (application) {
@@ -38,7 +42,7 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
         jobTitle: application.jobTitle,
         company: application.company,
         resumeUsed: application.resumeUsed,
-        appliedDate: application.appliedDate,
+        appliedDate: application.appliedDate?.slice(0, 10) || '',
         status: application.status,
         coverLetter: application.coverLetter || '',
         jobUrl: application.jobUrl || '',
@@ -68,9 +72,20 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await onSave(formData);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Could not save this application.');
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
   };
 
   return (
@@ -279,20 +294,24 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
         </div>
 
         {/* Buttons */}
+        {saveError && <p className="text-sm text-red-600">{saveError}</p>}
+
         <div className="flex justify-end space-x-4 pt-4">
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            disabled={saving}
+            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-60"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+            disabled={saving}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center disabled:bg-blue-300"
           >
             <Save className="h-4 w-4 mr-2" />
-            <span>{application ? 'Update' : 'Save'} Application</span>
+            <span>{saving ? 'Saving...' : `${application ? 'Update' : 'Save'} Application`}</span>
           </button>
         </div>
       </form>

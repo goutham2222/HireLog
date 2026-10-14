@@ -14,6 +14,7 @@ export const ApplicationDetailsModal: React.FC<ApplicationDetailsModalProps> = (
 
   // Fields to display in the grid (Cover Letter excluded here)
   const fields: { label: string; key: keyof JobApplication; isLink?: boolean }[] = [
+    { label: 'Role', key: 'role' },
     { label: 'Job Title', key: 'jobTitle' },
     { label: 'Company', key: 'company' },
     { label: 'Applied Date', key: 'appliedDate' },
@@ -50,14 +51,15 @@ export const ApplicationDetailsModal: React.FC<ApplicationDetailsModalProps> = (
               <div key={key} className="flex flex-col">
                 <span className="text-sm font-semibold text-gray-600 mb-1">{label}</span>
                 {isLink ? (
-                  <a
-                    href={String(value)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline hover:text-blue-800"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void window.api.openExternal(String(value));
+                    }}
+                    className="text-blue-600 underline hover:text-blue-800 text-left"
                   >
                     View Posting
-                  </a>
+                  </button>
                 ) : (
                   <span className="text-gray-900 break-words">{value}</span>
                 )}

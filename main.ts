@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, screen, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, screen, dialog, shell } from 'electron';
 import * as path from 'path';
 import fs from 'fs';
 import Database from 'better-sqlite3';
@@ -7,6 +7,15 @@ import type { Database as DatabaseType } from 'better-sqlite3';
 
 let mainWindow: BrowserWindow | null = null;
 let db: DatabaseType | null = null;
+
+const isHttpUrl = (url: string) => {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
 
 const initDB = () => {
   const dbDir = app.getPath('userData');
@@ -51,6 +60,13 @@ const createWindow = () => {
       contextIsolation: true,
       nodeIntegration: false,
     },
+  });
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (isHttpUrl(url)) {
+      void shell.openExternal(url);
+    }
+    return { action: 'deny' };
   });
 
   mainWindow.webContents.on('did-finish-load', () => {
@@ -109,8 +125,12 @@ ipcMain.handle('update-application', (_e, data) => {
   return data;
 });
 
-ipcMain.on('delete-application', (_e, id: string) => {
-  db!.prepare('DELETE FROM applications WHERE id = ?').run(id);
+ipcMain.handle('delete-application', (_e, id: string) => {
+  if (!db) {
+    throw new Error('Database is not ready');
+  }
+  const result = db.prepare('DELETE FROM applications WHERE id = ?').run(id);
+  return { changes: result.changes };
 });
 
 app.whenReady().then(() => {
@@ -124,6 +144,13 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
+});
+
+ipcMain.handle('open-external', async (_event, url: string) => {
+  if (!isHttpUrl(url)) {
+    throw new Error('Only http and https links can be opened.');
+  }
+  await shell.openExternal(url);
 });
 
 ipcMain.handle('pick-resume-file', async () => {

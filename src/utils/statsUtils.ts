@@ -11,6 +11,7 @@ export interface DashboardStats {
   monthlyCount: number;
   applicationsByStatus: { status: ApplicationStatus; count: number }[];
   averageApplicationsPerDay: number;
+  trendLast30Days: { date: Date; count: number }[];
 }
 
 const normalizeToLocalMidnight = (date: Date): Date => {
@@ -30,11 +31,14 @@ export function calculateStats(applications: JobApplication[]): DashboardStats {
   const now = normalizeToLocalMidnight(new Date());
 
   for (const app of applications) {
-    const parsed = new Date(app.appliedDate + 'T00:00:00');
+    statusCounts[app.status] = (statusCounts[app.status] || 0) + 1;
+
+    const dateOnly = String(app.appliedDate ?? '').slice(0, 10);
+    const parsed = new Date(`${dateOnly}T00:00:00`);
     const normalized = normalizeToLocalMidnight(parsed);
     const timeKey = normalized.getTime();
+    if (Number.isNaN(timeKey)) continue;
 
-    statusCounts[app.status] = (statusCounts[app.status] || 0) + 1;
     applicationsByDateMap.set(timeKey, (applicationsByDateMap.get(timeKey) || 0) + 1);
   }
 
@@ -79,6 +83,15 @@ export function calculateStats(applications: JobApplication[]): DashboardStats {
     ? applications.length / uniqueDates.size
     : 0;
 
+  const trendLast30Days = Array.from({ length: 30 }, (_, index) => {
+    const day = new Date(now);
+    day.setDate(now.getDate() - (29 - index));
+    return {
+      date: day,
+      count: applicationsByDateMap.get(day.getTime()) ?? 0,
+    };
+  });
+
   return {
     statusCounts,
     applicationsByDate,
@@ -88,5 +101,6 @@ export function calculateStats(applications: JobApplication[]): DashboardStats {
     monthlyCount,
     applicationsByStatus,
     averageApplicationsPerDay,
+    trendLast30Days,
   };
 }

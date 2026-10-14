@@ -13,14 +13,14 @@ import { ROLE_OPTIONS } from '../constants/roles';
 
 
 export const AnalyticsPage: React.FC = () => {
-  const { applications } = useJobApplications();
+  const { applications, loading, error } = useJobApplications();
 
   const [roleFilter, setRoleFilter] = useState('All');
   const [companyFilter, setCompanyFilter] = useState('');
 
   const filteredApplications = applications.filter(app => {
     const roleMatch = roleFilter === 'All' || app.role === roleFilter;
-    const companyMatch = app.company.toLowerCase().includes(companyFilter.toLowerCase());
+    const companyMatch = (app.company ?? '').toLowerCase().includes(companyFilter.toLowerCase());
     return roleMatch && companyMatch;
   });
 
@@ -34,13 +34,29 @@ export const AnalyticsPage: React.FC = () => {
     { name: 'Accepted', value: stats.statusCounts.accepted || 0, color: '#10B981' },
   ];
 
-  const applicationTrend = stats.applicationsByDate.map(item => ({
-    date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+  const applicationTrend = stats.trendLast30Days.map(item => ({
+    date: item.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     count: item.count
   }));
 
+  if (loading) {
+    return (
+      <div className="h-full overflow-y-auto w-full bg-gray-50 px-4 py-10 text-gray-600">
+        Loading applications...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-full overflow-y-auto w-full bg-gray-50 px-4 py-10 text-red-600">
+        {error}
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen h-full overflow-y-auto w-full bg-gray-50 px-4 py-10">
+    <div className="h-full overflow-y-auto w-full bg-gray-50 px-4 py-10">
       <div className="max-w-7xl mx-auto">
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-4 mb-6">

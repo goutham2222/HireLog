@@ -91,7 +91,7 @@
     "@electron/rebuild": "^4.0.1",
     "@rollup/plugin-commonjs": "^28.0.6",
     "@types/better-sqlite3": "^7.6.13",
-    "@types/electron": "^38.0.0",
+    "@types/electron": "^1.6.12",
     "@types/react-dom": "^19.1.6",
     "@types/recharts": "^1.8.29",
     "@types/uuid": "^10.0.0",
